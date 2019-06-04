@@ -1,0 +1,106 @@
+<!doctype html public '-//W3C//DTD HTML 4.01//EN'
+  'http://www.w3.org/TR/html4/strict.dtd'>
+
+<html>
+
+<head>
+  <title>ibcs-us - User space emulation of SCO, SUN and others</title>
+  <meta name="Author" content="Russell Stuart">
+  <meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+
+  <style type="text/css">
+    h1     	{ margin-left: 0em; margin-top: 0; text-align: center; font-size: 200%; font-weight: bold; background-color: #8080FF }
+    p		{ margin-left: 2em }
+    table	{ margin-left: 4em }
+    ul		{ margin-left: 2em }
+  </style>
+
+</head>
+
+<body>
+
+<h1>
+  ibcs-us<br>
+  <font size="4">User space emulation of SCO, Solaris and others</font>
+</h1>
+
+<p>
+ iBCS (Intel Binary Compatibility System) emulate at the following Unix
+ systems at the system call level: xenix, isc, sco, solaris, svr4,
+ uw7 and wyse.  It uses the Linux user space syscall API directly rather
+ than via some POSIX'y inteface, so it will only work on Linux i386
+ and Linux amd64.
+</p>
+
+<p>
+  This is a fork of the sourceforge package
+  <a href="http://ibcs64.sourceforge.net">iBCS64</a>,
+  which in turn was a fork of
+  <a href="http://linux-abi.sourceforge.net">Linux-ABI</a>.
+  iBCS64 is a set of kernel modules doing the same job.
+  The kernel modules require too much work to maintain because the
+  Linux kernel API changes to rapidly.  The Linux user space syscall ABI
+  on the other hand is very stable
+  (mostly because to Linus is an arsehole about it - thank you Linus!).
+</p>
+
+<h2>Documentation</h2>
+
+<p>
+  There is a
+  <a href="ibcs-us.1.html">the man page ibcs-us(1)</a>,
+  <a href="ChangeLog.txt">change log</a> and a
+  <a href="README.txt">README</a>.
+</p>
+
+<h2>Copyright and License</h2>
+
+<p>
+  ibcs-us is copyright &copy; 2019 Russell Stuart
+  and (lots) of others.
+  It is licensed under the <a href="gpl-2.txt">GNU General Public License, version 2</a>.
+</p>
+
+<p>
+ This program is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License version 2
+ as published by the Free Software Foundation.
+</p>
+
+<p>
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+</p>
+
+<h2>Downloading, Feedback & Contributing</h2>
+  
+<p>
+Development for ibcs-us is hosted on
+<a href="http://sourceforge.net/projects/ibcs-us/">Source forge</a>:
+</p>
+
+<ul>
+  <li>
+    <a href="https://sourceforge.net/projects/ibcs-us/files/">Download area</a>,
+    (.tar.gz, .deb).
+  </li>
+  <li>
+    <a href="http://sourceforge.net/p/ibcs-us/tickets/">Issue tracker</a>,
+    bugs, features or just questions.
+  </li>
+  <li>
+    <a href="https://sourceforge.net/p/ibcs-us/code/ref/default/">Source repository</a>.
+  </li>
+</ul>
+
+<p>&nbsp;</p>
+
+<hr>
+<p style="margin-left: 0">
+  Russell Stuart, 2019-Jun-03.
+</p>
+
+</body>
+</html>

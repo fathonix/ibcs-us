@@ -1,0 +1,5 @@
+#
+# ibcs-us is statically linked, so lintian thinking it's a shared
+# library is decidedly odd.
+#
+ibcs-us binary: shared-lib-without-dependency-information usr/bin/ibcs-us

@@ -1,0 +1,25 @@
+#!/bin/sh
+set -Ceu
+
+if [ "$1" = configure ]
+then
+    #
+    # If we have setcap is installed, try setting cap_sys_rawio+ep,
+    # which allows us to install our binaries without the setuid
+    # bit.
+    if ! command -v setcap > /dev/null
+    then
+        echo "Setcap is not installed, falling back to setuid" >&2
+        chmod u+s /usr/bin/ibcs-us
+    elif setcap cap_sys_rawio+ep /usr/bin/ibcs-us
+    then
+	chmod u-s /usr/bin/ibcs-us
+    else
+	echo "Setcap failed on /usr/bin/ibcs-us, falling back to setuid" >&2
+	chmod u+s /usr/bin/ibcs-us
+    fi
+fi
+
+#DEBHELPER#
+
+exit 0

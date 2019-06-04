@@ -1,0 +1,53 @@
+ibcs-us (4.0-1) unstable; urgency=low
+
+  * Moved to a user space implementation.
+
+ -- Russell Stuart <russell-debian@stuart.id.au>  Mon,  3 Jun 2019 09:14:09 +1000
+
+ibcs64 (3.9.5.1-1) unstable; urgency=low
+
+  * New upstream release - use uscan sf redirector.
+
+ -- Russell Stuart <russell-debian@stuart.id.au>  Tue, 21 Oct 2014 14:17:08 +1000
+
+ibcs64 (3.9.5-1) unstable; urgency=low
+
+  * New upstream release
+    - Move home to sourceforge.
+
+ -- Russell Stuart <russell-debian@stuart.id.au>  Thu, 29 May 2014 20:31:59 +1000
+
+ibcs (3.9.4-1) unstable; urgency=low
+
+  * New upstream release
+    - fix sigsuspend
+
+ -- Russell Stuart <russell-debian@stuart.id.au>  Tue,  1 Nov 2011 16:29:19 +1000
+
+ibcs (3.9.2-1) unstable; urgency=low
+
+  * New upstream release
+    - running abitrace causes a segfault
+
+ -- Russell Stuart <russell-debian@stuart.id.au>  Tue, 19 Apr 2011 16:18:10 +1000
+
+ibcs (3.9.1-1) unstable; urgency=low
+
+  * New upstream release
+    - Get it to compile on 2.6.32 i386 & am64, 2.6.35 i386 & amd64.
+
+ -- Russell Stuart <russell-debian@stuart.id.au>  Wed, 16 Mar 2011 09:26:20 +1000
+
+ibcs (3.9-1) unstable; urgency=low
+
+  * New upstream release
+    - amd64 interrupt vector can be set in abi_lcall
+    - complies on 2.6.35
+
+ -- Russell Stuart <russell-debian@stuart.id.au>  Sat, 12 Mar 2011 11:21:52 +1000
+
+ibcs (3.8.1-1) unstable; urgency=low
+
+  * Initial release.
+
+ -- Russell Stuart <russell-debian@stuart.id.au>  Tue,  8 Mar 2011 13:01:25 +1000

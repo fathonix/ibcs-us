@@ -1,0 +1,16 @@
+Source: ibcs-us
+Section: otherosfs
+Priority: extra
+Maintainer: Russell Stuart <russell-debian@stuart.id.au>
+Build-Depends: debhelper (>= 10), libc6-dev-i386, linux-libc-dev:i386
+Standards-Version: 3.9.8
+Homepage: http://ibcs-us.sourceforge.net/
+
+Package: ibcs-us
+Architecture: amd64 i386
+Depends: ${misc:Depends}
+Recommends: libcap2-bin
+Description: Runs various binaries from other Unix systems
+ iBCS (Intel Binary Compatibility System) providing the user space
+ emulation of the following Unix systems at the system call level:
+ xenix, ibcs, isc, sco, solaris, svr4, util, uw7 and wyse.

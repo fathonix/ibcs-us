@@ -1,0 +1,176 @@
+.\" ibcs-us (c) 2016 Russell Stuart
+.TH IBCS-US 1 "Jun 2019" "Version 4.0" "ibcs-us"
+.SH NAME
+ibcs-us \- Emulate other Unix systems
+.SH SYNOPSIS
+.B ibcs-us
+[ options ] [
+.I program args...
+]
+.SH DESCRIPTION
+.I ibcs-us
+is an emulator - it loads and runs a
+.IR program
+designed to run another Unix system,
+which is given the command line options
+.IR args... .
+.I ibcs-us
+intercets and emulates the system calls
+.I program
+uses but the rest of the environment
+such as files libraries and most special devices
+must be supplied some other way (but see
+.BR \-\-map .)
+It probably won't work with programs that aren't statically linked.
+.PP
+.I ibcs-us
+attempts to map inode numbers into a 16 bit range as required
+by most personalies,
+and it does to attempt embulate the
+.I /dev/spx
+and
+.I /dev/socksys
+devices on personalities that use them.
+.SH COMMAND LINE
+.PP
+.I ibcs-us
+accepts the following command line options:
+.IP "\fB\-l \fIfilename\fP, \fB\-\-log=\fIfilename\fP"
+In a past life most of
+.I ibcs-us
+ran as kernel modules.
+When those modules wanted to tell you something
+(mostly errors and warnings) they wrote it to the kernel's log file.  
+This option directs those messages to
+.IR filename .
+If
+.I filename
+is a number logging is written
+to that file description instead,
+for example
+.I \-\-log=2
+writes logging information to stderr.
+The default is to write it to stderr.
+.IP "\fB\-m \fIfilename.map\fP, \fB\-\-map=\fIfilename.map\fP"
+Rewrite filenames given to system calls.
+The filename passed to the system call is made absolute and normalised
+before checking if it should be rewritten.
+In
+.I filename.map
+blank lines and lines starting with
+.B #
+are ignored.
+Other lines must have one of the formats:
+.RS
+.RS
+.PP
+prefixmap: \fI/path/from\fP \-\-> \fI/path/to\fP
+.br
+prefixmap: \fI/dir/from/\fP \-\-> \fI/dir/to/\fP
+.RE
+.PP
+The first form redirects all references to the file name
+.I /path/from
+to go to
+.I /path/to
+instead.
+The second file redirects all references to file names starting with 
+.I /dir/from/
+to start with
+.I /dir/to/
+instead.
+All path names must be absolute (ie, start with a
+.BR / ).
+They have leading and traing space stripped.
+The
+.B -->
+must be surrounded by white space.
+.RE
+.IP "\fB\-p \fBpersonality\fP, \fB\-\-personality=\fIpersonality\fP
+Force the personality to be
+.IR personality .
+The personality selects which Unix system is emulated.
+If not set
+.B ibcs\-us
+attempts to guess it.
+The personalities
+.B ibcs-us
+recognises are defined in the source in
+.BR include/ibcs\-us/linux26\-compat/linux/personality.h .
+The personality can be specified as a hexadecimal number,
+and / or as the names in that file separated by a
+.BR + .
+.RS
+.PP
+The personalities listed in 
+.B include/ibcs\-us/linux26\-compat/linux/personality.h
+that are vaguely likely to do something useful are:
+PER_OSF4,
+PER_OSR5,
+PER_SCOSVR3,
+PER_SOLARIS,
+PER_SUNOS,
+PER_SVR3,
+PER_SVR4,
+PER_UW7,
+PER_WYSEV386 and
+PER_XENIX.
+.RE
+.IP "\fB\-t \fBtrace\fP, \fB\-\-trace=\fItrace\fP
+Print debugging trace about what is happening to the log.
+.I trace
+is a number whose bits turn on the various kinds of
+specified in the source file
+.BR include/ibcs\-us/ibcs\-lib/trace.h .
+.I trace
+can be a hexadecimal number or the symbolic constants defines
+in that file separated by
+.BR + .
+.B ~0
+turns all trace on.
+.SH INSTALLATION
+.I ibcs-us
+must be run as root or be given the
+.I CAP_SYS_RAWIO
+capability using
+capset(1).
+It drops the privileges that don't match the credentials(7)
+of the file being run before executing it.
+.PP
+Emulated programs that use fork(2) (eg, they run other programs)
+or look at what other programs are running may not like
+Linux process ids (pids) above 32767.
+The maximum pid generated can be changed until the next reboot by running:
+.IP
+sudo sh -c "echo 32768 >/proc/sys/kernel/pid_max"
+.PP
+It can be changed permanently on Debian using sysctl(8)
+by placing the following line in
+.IR /etc/sysctl.d/99-ibcs-us.conf :
+.IP
+kernel.pid_max = 32786
+.SH HISTORY
+.B iBCS
+is an acronym for Intel Binary Compatibility System.
+That was the name of the kernel patches
+(later turned into dkms modules)
+.I ibcs-us
+was derived from.
+Prior to that it was called ABI (Application Binary Interface).
+.SH BUGS
+.PP
+Do not expect
+.B ibcs-us
+to work for you.
+It was developed 20 years ago by cheapskates
+who did not what to pay for the licence fees of the Unix systems this
+program emulates, and it's been been bit rotting ever since.
+The current maintainer hates the thing so he is not interested
+developing it further nor in fixing bugs that don't effect him directly,
+but he will accept bug reports accompanied by a patch.
+.SH HOMEPAGE
+https://ibcs-us.sourceforge.net
+.SH AUTHOR
+The author of this man page and
+.IR ibcs-us 's
+current maintainer is Russell Stuart, <russell+ibcs\-us@stuart.id.au>.

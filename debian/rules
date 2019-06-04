@@ -1,0 +1,11 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+override_dh_update_autotools_config:
+override_dh_autoreconf:
+override_dh_auto_configure:
+
+override_dh_auto_build:
+	env --ignore-environment PATH="${PATH}" make $(if $(findstring debug,$(DEB_BUILD_OPTIONS)),CFLAGS_OPT=-Og,$(if $(findstring noopt,$(DEB_BUILD_OPTIONS)),CFLAGS_OPT=-O0))
