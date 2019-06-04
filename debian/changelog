@@ -1,3 +1,15 @@
+ibcs-us (4.1.1-1) unstable; urgency=low
+
+  * New upstream release - semver versioning.
+
+ -- Russell Stuart <russell-debian@stuart.id.au>  Tue,  4 Jun 2019 17:15:33 +1000
+
+ibcs-us (4.1-1) unstable; urgency=low
+
+  * New upstream release - made it static.
+
+ -- Russell Stuart <russell-debian@stuart.id.au>  Tue,  4 Jun 2019 16:44:22 +1000
+
 ibcs-us (4.0-1) unstable; urgency=low
 
   * Moved to a user space implementation.

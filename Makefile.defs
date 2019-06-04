@@ -29,10 +29,17 @@ CFLAGS_ERROR	?=	-Werror
 
 CFLAGS		?=	$(INCLUDES) $(CFLAGS_DEBUG) $(CFLAGS_OPT) $(CFLAGS_WARNINGS) $(CFLAGS_ERROR) $(CFLAGS_ARCH) $(CFLAGS_DEFINES) $(IBCS_CFLAGS) $(CFLAGS_EXTRA)
 
-LDFLAGS_ADDR	?=	-Wl,-Ttext=0x60000000
+#
+# The -Wl,-Ttext=0xbf000000 asks Linux to load the program at that address.
+# The max size is 3GB, so it must all fit under 0xc0000000 and it needs space
+# for the heap, so that is about as high as it can go.  Moving it up there
+# gets it out of the way of the programs we are tring to execute.
+#
+LDFLAGS_ADDR	?=	-Wl,-Ttext=0xbf000000
 LDFLAGS_BUILDID	?=	-Wl,--build-id=none
-LDFLAGS_LIBS	?=	-lgcc -nostdlib 
-LDFLAGS		?= 	$(LDFLAGS_LIBS) $(LDFLAGS_BUILDID) $(LDFLAGS_ADDR)
+LDFLAGS_LIBS	?=	-lgcc -nostdlib
+LDFLAGS_STATIC	?=	-static
+LDFLAGS		?= 	$(LDFLAGS_LIBS) $(LDFLAGS_BUILDID) $(LDFLAGS_ADDR) $(LDFLAGS_STATIC)
 
 #
 # C files can contain their own unit tests which are compiled in when

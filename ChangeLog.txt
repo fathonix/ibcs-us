@@ -1,3 +1,12 @@
+ibcs-us-4.1.1  2019-06-04 Russell Stuart <russell-debian@stuart.id.au>
+
+	* bug: move to semver versioning.
+
+ibcs-us-4.1  2019-06-03 Russell Stuart <russell-debian@stuart.id.au>
+
+	* bug: wasn't statically linked, so had un-needed libc-i386
+	  dependency.
+
 ibcs-us-4.0  2019-06-03 Russell Stuart <russell-debian@stuart.id.au>
 
 	* Change to user space implmentatio, rename ibcs-is.

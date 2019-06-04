@@ -7,16 +7,8 @@ ALL_COMPONENT_OBJS	= $(foreach component, $(ALL_COMPONENTS), $(BUILD_DIR)/$(comp
 
 all: $(BUILD_DIR)/ibcs-us
 
-#
-# The -Wl,-Ttext=0x60000000 asks Linux to load the program that many bytes
-# higher than it normally would.  That ends up moving it to 0xb6550000 or 
-# so.  The max size is 3GB, so it must all fit under 0xc0000000, so that is
-# about as high as it can go.  Moving it up there gets it out of the way of
-# the programs we are tring to execute.
-#
 $(BUILD_DIR)/ibcs-us: $(ALL_COMPONENT_OBJS) Makefile
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(ALL_COMPONENT_OBJS)
-	@printf "$@ won't run until:\n    \"sudo chown root $@; sudo chmod u+s $@\" or\n    \"sudo setcap cap_sys_rawio+ep $@\"\nis done.\n"
 
 $(ALL_COMPONENT_OBJS):	FORCE
 	$(MAKE) --directory $(patsubst %.o, %, $(@F)) ../$@
