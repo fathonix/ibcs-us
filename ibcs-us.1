@@ -15,7 +15,7 @@ designed to run another Unix system,
 which is given the command line options
 .IR args... .
 .I ibcs-us
-intercets and emulates the system calls
+intercepts and emulates the system calls
 .I program
 uses but the rest of the environment
 such as files libraries and most special devices
@@ -25,8 +25,8 @@ It probably won't work with programs that aren't statically linked.
 .PP
 .I ibcs-us
 attempts to map inode numbers into a 16 bit range as required
-by most personalies,
-and it does to attempt embulate the
+by most personalities,
+and it does to attempt emulate the
 .I /dev/spx
 and
 .I /dev/socksys
@@ -35,18 +35,24 @@ devices on personalities that use them.
 .PP
 .I ibcs-us
 accepts the following command line options:
+.IP "\fB\-h\fP, \fB\-\-help\fP"
+Print a short message explaining what command line arguments
+.I ibcs-us
+expects and list the command line options it accepts.
 .IP "\fB\-l \fIfilename\fP, \fB\-\-log=\fIfilename\fP"
 In a past life most of
 .I ibcs-us
 ran as kernel modules.
 When those modules wanted to tell you something
-(mostly errors and warnings) they wrote it to the kernel's log file.  
+(the trace produced by
+.BR \-\-trace ,
+errors and warnings) they wrote it to the kernel's log file.  
 This option directs those messages to
 .IR filename .
 If
 .I filename
 is a number logging is written
-to that file description instead,
+to that file descriptor instead,
 for example
 .I \-\-log=2
 writes logging information to stderr.
@@ -81,7 +87,7 @@ to start with
 instead.
 All path names must be absolute (ie, start with a
 .BR / ).
-They have leading and traing space stripped.
+They have leading and trailing white space stripped.
 The
 .B -->
 must be surrounded by white space.
@@ -144,9 +150,10 @@ The maximum pid generated can be changed until the next reboot by running:
 .IP
 sudo sh -c "echo 32768 >/proc/sys/kernel/pid_max"
 .PP
-It can be changed permanently on Debian using sysctl(8)
-by placing the following line in
-.IR /etc/sysctl.d/99-ibcs-us.conf :
+It can be set at boot Debian using sysctl(8)
+by creating the file
+.I /etc/sysctl.d/99-ibcs-us.conf
+with the following line in it:
 .IP
 kernel.pid_max = 32786
 .SH HISTORY

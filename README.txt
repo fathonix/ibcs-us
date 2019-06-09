@@ -11,11 +11,11 @@ ibcs-us
     http://ibcs-us.sourceforge.net/
 
   iBCS isn't well maintained.  It's likely everything except the
-  personality I use (PER_SCOSVR3) has bit rotted, and even
-  PER_SCOSVR3 is will be broken in places.  There is no point
-  asking me fix it for you as I hate the thing, but if you know
-  something about C you may be able to fix it yourself if you have
-  a platform it does work on.  See "Developer Notes" below.
+  personality I use (PER_SCOSVR3) has bit rotted, and even PER_SCOSVR3
+  will be broken in places.  There is no point asking me fix it for
+  you as I hate the thing, but if you know something about C you may
+  be able to fix it yourself if you have a platform it does work on.
+  See "Developer Notes" below.
 
 
 Dependencies
