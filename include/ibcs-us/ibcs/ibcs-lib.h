@@ -6,11 +6,7 @@
  */
 #ifndef _IBCS_US_IBCS_LIB_LIB_H
 #define _IBCS_US_IBCS_LIB_LIB_H
-/*
- * This should be "#include <linux/unistd.h>", but that is broken for gcc
- * 6.3.0 on Debian stretch.
- */
-#include <i386-linux-gnu/asm/unistd_32.h>
+#include <linux/unistd.h>
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -21,11 +17,14 @@
 #define	IBCS_SYSCALL(name, args...) ibcs_syscall(__NR_##name, ##args)
 #define	IBCS_IS_ERR(x)	((size_t)(x) > (size_t)-4096)
 
+struct sigaction;
+
 extern unsigned long	abi_personality(const char *);
 extern void		ibcs_fatal(const char* message, ...);
 extern void		ibcs_fatal_syscall(int retval, const char* message, ...);
 extern void		ibcs_free(void* blk);
 extern void*		ibcs_malloc(size_t size);
+extern int		ibcs_sigaction(int sig, const struct sigaction *act, struct sigaction *oldact);
 extern long long	ibcs_syscall(int syscall, ...);
 extern int		ibcs_vfmt(char* out, size_t size, const char* fmt, va_list list);
 extern long long	ibcs_vsyscall(int syscall, va_list list);

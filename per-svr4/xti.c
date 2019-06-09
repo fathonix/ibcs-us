@@ -483,7 +483,7 @@ timod_update_socket(int fd, struct file * fp, struct pt_regs * regs)
 	 * If this a SOCK_STREAM and is in the TS_WRES_CIND state
 	 * we are supposed to be looking for an incoming connection.
 	 */
-	if (sock->type != SOCK_STREAM || priv->state != TS_WRES_CIND)
+	if (sock->type != SOCK_STREAM || !priv || priv->state != TS_WRES_CIND)
 		goto out;
 
 	old_esp = _SP(regs);
@@ -852,8 +852,6 @@ error = 0;
 			int i = -1;
 
 			for (i = 0; i < ctl_len && i < 64; i += 4) {
-				u_long v;
-
 				get_user(v, (u_long *)(ctl_buf + i));
 				__abi_trace("ctl: 0x%08lx\n", v);
 			}
@@ -865,8 +863,6 @@ error = 0;
 			int i = -1;
 
 			for (i = 0; i < dat_len && i < 64; i += 4) {
-				u_long v;
-
 				get_user(v, (u_long *)(dat_buf + i));
 				__abi_trace("dat: 0x%08lx\n", v);
 			}
@@ -1370,6 +1366,10 @@ timod_ioctl(struct pt_regs *regs,
 				return (int)((unsigned)-EFAULT << 8) | TSYSERR;
 			}
 
+			if (!Priv(filep)) {
+				fput(filep);
+				return TBADF;
+			}
 			__get_user(v, &((struct T_info_req *)arg)->PRIM_type);
 			if (v != T_INFO_REQ) {
 				fput(filep);
@@ -1480,7 +1480,7 @@ timod_ioctl(struct pt_regs *regs,
 		}
 
 		case 3: /* TI_UNBIND */
-			if (Priv(filep)->state != TS_IDLE) {
+			if (!Priv(filep) || Priv(filep)->state != TS_IDLE) {
 				fput(filep);
 				return TOUTSTATE;
 			}
@@ -1509,7 +1509,7 @@ timod_ioctl(struct pt_regs *regs,
 					arg, len, len_p,
 					NULL, -1, NULL,
 					&i);
-			if (error > 0) {
+			if (error > 0 && Priv(filep)) {
 				/* If there is excess data in the response
 				 * our buffer is too small which implies
 				 * the application is broken. SO_LINGER

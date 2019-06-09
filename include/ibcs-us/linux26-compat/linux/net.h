@@ -17,8 +17,6 @@
 
 #define __SO_ACCEPTCON	(1 << 16)	/* performed a listen		*/
 
-struct file*		file;
-
 struct socket
 {
     short		type;

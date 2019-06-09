@@ -122,7 +122,7 @@ struct file
     int			fd;	/* Open file handle */
     int			f_count;
     void*		private_data;
-    int			_fdtable_index;
+    int			_f_isopen;
     struct file_operations* f_op;
     struct dentry*	f_dentry;
     struct dentry	_f_dentry_real;

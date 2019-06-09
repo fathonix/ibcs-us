@@ -47,7 +47,9 @@ typedef void (*pfn) (void);     /* Completion function */
 #define THIRD_PARAM(regp)	((u_long)_DX(regp))
 
 /* Return a mask that includes SIG only.  */
+#ifndef	_KSL_IBCS_US
 #define __sigmask(sig)		(1 << ((sig) - 1))
+#endif
 #define _S(nr)			(1 << ((nr) - 1))
 #define _BLOCKABLE		(~(_S(IBCS_SIGKILL) | _S(IBCS_SIGSTOP)))
 

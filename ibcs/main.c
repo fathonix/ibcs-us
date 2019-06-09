@@ -70,9 +70,11 @@ static void usage(const char* me, const char* fmt, ...)
     } else {
 	ibcs_writef(2, "usage: %s [options] ibcs-executable [arg..]\n", me);
 	ibcs_writef(2, "options:\n");
-        ibcs_writef(2, "  --log=L            Where to write printk output, like trace.\n");
-        ibcs_writef(2, "  --personality=PER  Set personality.\n");
-        ibcs_writef(2, "  --trace=FLAGS      Set tracing bits.\n");
+        ibcs_writef(2, "  -l L, --log=L        Where to write printk output, like trace.\n");
+        ibcs_writef(2, "  -h,   --help         Print this message & exit.\n");
+        ibcs_writef(2, "  -m M, --map=M        Rewrite filenames using map M.\n");
+        ibcs_writef(2, "  -p P, --personality=P Emulate personality P.\n");
+        ibcs_writef(2, "  -t T, --trace=T      Set tracing bits to T.\n");
     }
     IBCS_SYSCALL(exit, 1);
 }
@@ -349,9 +351,11 @@ static struct flag_lookup trace_flags_table[] = {
  */
 static const char* options[] = {
     "-l=",	"--log=",
+    "-h",	"--help",
     "-m=",	"--map=",
     "-p=",	"--personality=",
     "-t=",	"--trace=",
+    (char*)0
 };
 
 
@@ -377,7 +381,7 @@ static void parse_cmdline_options(
 		    fcntl, cmdline_options->abi_trace_fd, F_GETFL);
 		if (IBCS_IS_ERR(ret)) {
 		    ibcs_fatal_syscall(
-			cmdline_options->abi_trace_fd, "logging fd %d", arg);
+			cmdline_options->abi_trace_fd, "logging fd %s", arg);
 		}
 	    } else {
 		cmdline_options->abi_trace_fd =
@@ -387,6 +391,9 @@ static void parse_cmdline_options(
 			cmdline_options->abi_trace_fd, "Can not open %s", arg);
 		}
 	    }
+	}
+	if (!strcmp(option, "-h=") || !strcmp(option, "--help=")) {
+	    usage(cmdline_options->me, (char*)0);
 	}
 	if (!strcmp(option, "-m=") || !strcmp(option, "--map=")) {
 	    cmdline_options->filemap_filename = arg;
@@ -431,22 +438,22 @@ static void set_credentials(
      */
     my_uid32 = IBCS_SYSCALL(getuid32);
     if (IBCS_IS_ERR(my_uid32)) {
-	ibcs_fatal_syscall(my_uid32, "getuid32()");
+	ibcs_fatal_syscall(my_uid32, "set_credentials getuid32()");
 	goto out;
     }
     my_gid32 = IBCS_SYSCALL(getgid32);
     if (IBCS_IS_ERR(my_gid32)) {
-	ibcs_fatal_syscall(my_gid32, "getgid32()");
+	ibcs_fatal_syscall(my_gid32, "set_credentials getgid32()");
 	goto out;
     }
     my_euid32 = IBCS_SYSCALL(geteuid32);
     if (IBCS_IS_ERR(my_euid32)) {
-	ibcs_fatal_syscall(my_euid32, "geteuid32()");
+	ibcs_fatal_syscall(my_euid32, "set_credentials geteuid32()");
 	goto out;
     }
     my_egid32 = IBCS_SYSCALL(getegid32);
     if (IBCS_IS_ERR(my_egid32)) {
-	ibcs_fatal_syscall(my_egid32, "getegid32()");
+	ibcs_fatal_syscall(my_egid32, "set_credentials getegid32()");
 	goto out;
     }
     /*
@@ -455,13 +462,13 @@ static void set_credentials(
     efile = linux26_fopen(executable, O_RDONLY);
     if (IBCS_IS_ERR(efile)) {
         retval = (int)efile;
-	ibcs_fatal_syscall(retval, "open(\"%s\")", executable);
+	ibcs_fatal_syscall(retval, "set_credentials open(\"%s\")", executable);
 	efile = (struct file*)0;
 	goto out;
     }
-    retval = IBCS_SYSCALL(fstat, efile->fd, &st64);
+    retval = IBCS_SYSCALL(fstat64, efile->fd, &st64);
     if (IBCS_IS_ERR(retval)) {
-	ibcs_fatal_syscall(retval, "fstat(\"%s\")", executable);
+	ibcs_fatal_syscall(retval, "set_credentials fstat64(\"%s\")", executable);
 	goto out;
     }
     /*
@@ -492,7 +499,7 @@ static void set_credentials(
     memset(caps, '\0', sizeof(caps));
     retval = IBCS_SYSCALL(capset, &hdr, caps);
     if (IBCS_IS_ERR(retval)) {
-	ibcs_fatal_syscall(retval, "capset()");
+	ibcs_fatal_syscall(retval, "set_credentials capset()");
 	goto out;
     }
 out:

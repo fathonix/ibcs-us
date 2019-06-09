@@ -156,7 +156,7 @@ void lcall7_dispatch(struct pt_regs *regs, struct sysent *ap, int off)
 	clear_error(regs);
 	set_result(regs, error);
 	abi_printk(
-	    ABI_TRACE_API, "%s() returns %d (ax:dx=0x%llx)\n",
+	    ABI_TRACE_API, "%s returns %d (edx:%ld)\n",
 	    ap->se_name, _AX(regs), _AX(regs), _DX(regs));
     }
 }
@@ -429,7 +429,8 @@ static void lcall_sigsegv(int signal, siginfo_t* siginfo, void* context)
      */
     struct sigaction*	sa = &current->_linux26_sigtab[SIGSEGV];
     if (sa->sa_flags & SA_SIGINFO) {
-	sa->sa_sigaction(signal, siginfo, context);
+        typedef void (*siginfo_function_ptr)(int, struct siginfo*, void*);
+	((siginfo_function_ptr)sa->sa_handler)(signal, siginfo, context);
     } else if (sa->sa_handler == SIG_IGN) {
         ;
     } else if (sa->sa_handler != SIG_DFL) {
@@ -439,7 +440,7 @@ static void lcall_sigsegv(int signal, siginfo_t* siginfo, void* context)
 	 * The most likely outcome - they didn't do anything special.
 	 * So just make it happen again, but let nature take it's course.
 	 */
-	IBCS_SYSCALL(sigaction, SIGSEGV, sa, (struct sigaction*)0);
+        ibcs_sigaction(SIGSEGV, sa, (struct sigaction*)0);
     }
 }
 
@@ -452,10 +453,11 @@ void sysent_initialise()
     int			ret;
     struct sigaction	sa;
 
-    sa.sa_sigaction = lcall_sigsegv;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = (__sighandler_t)lcall_sigsegv;
     sa.sa_flags = SA_SIGINFO;
     memset(&sa.sa_mask, ~0, sizeof(sa.sa_mask));
-    ret = (int)IBCS_SYSCALL(sigaction, SIGSEGV, &sa, (struct sigaction*)0);
+    ret = ibcs_sigaction(SIGSEGV, &sa, (struct sigaction*)0);
     if (IBCS_IS_ERR(ret)) {
 	ibcs_fatal_syscall(ret, "sysent_initialise sigaction(%d)", SIGSEGV);
     }

@@ -1,7 +1,7 @@
 #ifndef _IBCS_US_IBCS_LIB_SYSENT_H
 #define _IBCS_US_IBCS_LIB_SYSENT_H
 #include <stddef.h>
-#include <i386-linux-gnu/asm/unistd_32.h>
+#include <linux/unistd.h>
 
 #include <ibcs-us/linux26-compat/asm/ptrace.h>
 #include <ibcs-us/linux26-compat/asm/uaccess.h>

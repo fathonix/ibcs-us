@@ -1,3 +1,11 @@
+ibcs-us-4.1.2  2019-06-07 Russell Stuart <russell-debian@stuart.id.au>
+
+	* bug: usage message needed some love.
+	* bug: fix signal handling.
+	* bug: don't decrement usage count on Linux close.
+	* new: move trace closer to the old code, so diff's are easier.
+	* new: Improve error messages.
+
 ibcs-us-4.1.1  2019-06-04 Russell Stuart <russell-debian@stuart.id.au>
 
 	* bug: move to semver versioning.

@@ -359,7 +359,6 @@ struct file* fget(unsigned int fd)
 	memset(file, '\0', sizeof(*file));
 	file->fd = fd;
 	file->f_count = 0;
-	file->_fdtable_index = fd;
 	file->f_op = &file_operations;
 	file->f_dentry = &file->_f_dentry_real;
 	file->f_dentry->_d_file = file;
@@ -367,6 +366,7 @@ struct file* fget(unsigned int fd)
 	struct kstat kstat;
 	if (!IBCS_IS_ERR(vfs_fstat(fd, &kstat))) {
 	    kstat_to_inode(file->f_dentry->d_inode, &kstat);
+	    file->_f_isopen = 1;
 	}
 	fdt->fd[fd] = file;
     }
@@ -375,18 +375,18 @@ struct file* fget(unsigned int fd)
 }
 
 
-void fput(struct file* file)
+static void fdestroy(struct file* file)
 {
-    struct fdtable*	fdt = current->files->fdt;
-
-    file->f_count -= 1;
-    if (file->f_count == 0 && file->fd == -1 && file->_fdtable_index != -1) {
-	if (fdt->max_fds > file->_fdtable_index) {
-	    fdt->fd[file->_fdtable_index] = (struct file*)0;
-	}
-	file->_fdtable_index = -1;
+    if (file->f_count == 0 && !file->_f_isopen) {
+	current->files->fdt->fd[file->fd] = (struct file*)0;
 	ibcs_free(file);
     }
+}
+
+void fput(struct file* file)
+{
+    file->f_count -= 1;
+    fdestroy(file);
 }
 
 struct file* linux26_fopen(const char* path, int mode)
@@ -401,9 +401,6 @@ struct file* linux26_fopen(const char* path, int mode)
 
 int linux26_fclose(struct file* file)
 {
-    if (IBCS_IS_ERR(file) || file->fd == -1) {
-	return 0;
-    }
     if (file->f_op->release) {
         /*
 	 * This is only used in anger by our character devices, which always
@@ -412,7 +409,7 @@ int linux26_fclose(struct file* file)
 	file->f_op->release(file->f_dentry->d_inode, file);
     }
     int ret = IBCS_SYSCALL(close, file->fd);
-    file->fd = -1;
+    file->_f_isopen = 0;
     fput(file);
     return ret;
 }
@@ -609,8 +606,8 @@ static int inode_to_path(struct path* path, const struct inode* inode)
     struct dentry*	root_dentry = super_block->s_root;
     kstat_to_inode(root_dentry->d_inode, &sb_kstat);
     /*
-     * set the flags from the mount options.
-     */
+      * set the flags from the mount options.
+      */
     char*		mnt_opt = words[3];
     while (*mnt_opt != '\0') {
 	char*		end_opt = strchr(mnt_opt, ',');
@@ -1055,7 +1052,7 @@ int get_unused_fd(void)
 {
     struct file* file = linux26_fopen("/dev/null", O_RDONLY);
     int fd = file->fd;
-    linux26_fclose(file);
+    fput(file);
     return fd;
 }
 
@@ -1284,7 +1281,6 @@ int linux26_capability(unsigned int flag, int action)
 	default:
 	    return -EINVAL;
     }
-    abi_printk(ABI_TRACE_ALWAYS, "flag=%llx old=%llx new=%llx\n", cap_bit, old_effective, new_effective);
     if (new_effective != old_effective) {
         caps[0].effective = new_effective;
         caps[1].effective = new_effective >> 32;
@@ -1338,17 +1334,17 @@ static void module_initialise()
     sprintf(exe_filename, exe_filename_fmt, current->pid);
     exe_file = linux26_fopen(exe_filename, O_RDONLY);
     if (IBCS_IS_ERR(exe_file)) {
-	ibcs_fatal_syscall((int)exe_file, "open(\"%s\")", exe_filename);
+	ibcs_fatal_syscall((int)exe_file, "module_initialise open(\"%s\")", exe_filename);
     }
     ret = vfs_fstat(exe_file->fd, &kstat);
     if (IBCS_IS_ERR(ret)) {
-	ibcs_fatal_syscall(ret, "stat(\"%s\")", exe_filename);
+	ibcs_fatal_syscall(ret, "module_initialise stat(\"%s\")", exe_filename);
     }
     exe_map_size = PAGE_ALIGN(kstat.size);
     ehdr = (const Elf32_Ehdr*)do_mmap(
 	exe_file, 0, exe_map_size, PROT_READ, MAP_PRIVATE | MAP_32BIT, 0);
     if (IBCS_IS_ERR(ehdr)) {
-	ibcs_fatal_syscall((int)ehdr, "mmap(\"%s\")", exe_filename);
+	ibcs_fatal_syscall((int)ehdr, "module_initialise mmap(\"%s\")", exe_filename);
     }
     if (ehdr->e_shoff == 0) {
         goto out;
@@ -1622,10 +1618,11 @@ static long long linux26_close(int syscall_no, va_list list)
     /*
      * Clean up our file table on close.
      */
-    if (fd < 0 || fd > fdt->max_fds || !fdt->fd[fd]) {
-	return IBCS_SYSCALL(close, fd);
+    if (fd >= 0 && fd < fdt->max_fds && fdt->fd[fd]) {
+        fdt->fd[fd]->_f_isopen = 0;
+	fdestroy(fdt->fd[fd]);
     }
-    return linux26_fclose(fdt->fd[fd]);
+    return IBCS_SYSCALL(close, fd);
 }
 
 
@@ -1756,7 +1753,7 @@ static long long linux26_fstat(int syscall_no, va_list list)
 }
 
 
-static long long linux26_sigaction(int syscall_no, va_list list)
+static long long linux26_rt_sigaction(int syscall_no, va_list list)
 {
     int			signum = va_arg(list, int);
     struct sigaction*	act = va_arg(list, struct sigaction*);
@@ -1775,7 +1772,7 @@ static long long linux26_sigaction(int syscall_no, va_list list)
     if (signum == SIGSEGV) {
 	return 0;
     }
-    return ibcs_syscall(syscall_no, signum, act, oldact);
+    return ibcs_sigaction(signum, act, oldact);
 }
 
 
@@ -1785,11 +1782,10 @@ static long long linux26_signal(int syscall_no, va_list list)
     __sighandler_t	handler = va_arg(list, __sighandler_t);
     struct sigaction	sa;
 
+    memset(&sa, '\0', sizeof(sa));
     sa.sa_handler = handler;
-    sa.sa_mask = 0;
-    sa.sa_flags = 0;
-    sa.sa_restorer = 0;
-    return SYS(sigaction, signum, &sa, (struct sigaction*)0);
+    return SYS(
+	rt_sigaction, signum, &sa, (struct sigaction*)0, sizeof(sa.sa_mask));
 }
 
 
@@ -1812,10 +1808,11 @@ static linux26_syscall_t linux26_syscall_tab[] = {
     [__NR_signal] =	linux26_signal,
     [__NR_oldlstat] =	linux26_stat,
     [__NR_dup2] =	linux26_dup,
-    [__NR_sigaction] =	linux26_sigaction,
+    [__NR_sigaction] =	linux26_rt_sigaction,
     [__NR_stat] = 	linux26_stat,
     [__NR_lstat] = 	linux26_stat,
     [__NR_fstat] = 	linux26_fstat,
+    [__NR_rt_sigaction]=linux26_rt_sigaction,
 };
 
 

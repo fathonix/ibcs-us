@@ -580,7 +580,7 @@ coff_load_object(struct linux_binprm *bprm, struct pt_regs *regs, int binary)
 	if (binary) {
 		COFF_SCNHDR	*sect_ptr2 = sect_bufr;
 		u_long		personality = PER_SVR3;
-		int		i;
+		int		j;
 
 		if ((status = flush_old_exec(bprm)))
 			goto out_free_file;
@@ -593,7 +593,7 @@ coff_load_object(struct linux_binprm *bprm, struct pt_regs *regs, int binary)
 		 * (or would it be better to prefer shared libraries over
 		 * binaries?  Or could they be different???)
 	 	 */
-		for (i = 0; i < sections; i++) {
+		for (j = 0; j < sections; j++) {
 			long	sect_flags = COFF_LONG(sect_ptr2->s_flags);
 
 			if (sect_flags == COFF_STYP_INFO &&

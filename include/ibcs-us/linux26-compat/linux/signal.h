@@ -12,12 +12,16 @@
 #define _IBCS_US_LINUX26_INCLUDE_LINUX_SIGNAL_H
 #include <stddef.h>
 
-#include <asm-generic/signal-defs.h>
-#include <linux/signal.h>
+/*
+ * Do NOT use linux/signal.h here.  It gets a "struct sigaction" that
+ * compiles cleanly but doesn't work with rt_sigaction().
+ */
+#define SA_RESTORER	0x04000000
 
+#include <asm-generic/signal.h>
+#include <asm-generic/siginfo.h>
 #include <ibcs-us/linux26-compat/linux/string.h>
 #include <ibcs-us/linux26-compat/linux/types.h>
-
 
 typedef unsigned long	old_sigset_t;
 

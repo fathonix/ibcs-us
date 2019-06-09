@@ -18,13 +18,13 @@ ROOT_DIR	:= $(if $(dir $(lastword $(MAKEFILE_LIST))), $(patsubst %/, %, $(dir $(
 BUILD_DIR	:= $(ROOT_DIR)/build
 BUILD_TEST_DIR	:= $(BUILD_DIR)/tests
 
-INCLUDES	?=	-I$(ROOT_DIR)/include -I/usr/include/i386-linux-gnu
+INCLUDES	?=	-I$(ROOT_DIR)/include
 
 CFLAGS_OPT	?=	-O2
 CFLAGS_DEBUG	?=	-g
 CFLAGS_ARCH	?=	-m32
 
-CFLAGS_WARNINGS	?=	-Wall -Wextra -Wno-unused-parameter -Wno-sign-compare
+CFLAGS_WARNINGS	?=	-Wall -Wextra -Wno-unused-parameter -Wno-sign-compare -Wduplicated-cond -Wlogical-op -Wnull-dereference -Wdouble-promotion -Wshadow
 CFLAGS_ERROR	?=	-Werror
 
 CFLAGS		?=	$(INCLUDES) $(CFLAGS_DEBUG) $(CFLAGS_OPT) $(CFLAGS_WARNINGS) $(CFLAGS_ERROR) $(CFLAGS_ARCH) $(CFLAGS_DEFINES) $(IBCS_CFLAGS) $(CFLAGS_EXTRA)

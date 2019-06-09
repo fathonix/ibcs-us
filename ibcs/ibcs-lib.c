@@ -220,6 +220,7 @@ char* strstr(const char* s, const char* n)
 #include <ibcs-us/ibcs/ibcs-lib.h>
 #include <ibcs-us/linux26-compat/linux/errno.h>
 #include <ibcs-us/linux26-compat/linux/rwsem.h>
+#include <ibcs-us/linux26-compat/linux/signal.h>
 #include <ibcs-us/linux26-compat/linux/string.h>
 
 #ifdef	UNIT_TEST
@@ -798,7 +799,7 @@ void* ibcs_malloc(size_t wanted)
      * a header at the end we know it's size.
      */
     if (IBCS_IS_ERR(p)) {
-	ibcs_fatal_syscall((int)p, "ibcs_malloc call to brk() failed");
+	ibcs_fatal_syscall((int)p, "ibcs_malloc brk()");
     }
     /*
      * If this new block is adjecent to the previous one if can become part
@@ -845,6 +846,39 @@ void ibcs_free(void* blk)
     p->next = IBCS_MALLOC_CLR_BUSY(p->next);
     ibcs_malloc_p = p;
 }
+
+
+/*
+ * The real Linux API requires a sa_restorer to given to the kernel,
+ * who sole job (as far as the kernel is concerned) is to call the
+ * rt_sigreturn syscall.  glibc uses it to do fancy nancy things.
+ */
+extern void ibcs_sigrestorer(void);
+void _ibcs_sigrestorer_dummy(void)
+{
+#define IBCS_STRINGIFY_(x)	#x
+#define IBCS_STRINGIFY(x)	IBCS_STRINGIFY_(x)
+    asm(
+	"ibcs_sigrestorer:\n"
+	"   mov $" IBCS_STRINGIFY(__NR_rt_sigreturn) ", %eax\n"
+	"   int $128\n"
+    );
+}
+
+int ibcs_sigaction(int sig, const struct sigaction *act, struct sigaction *oldact)
+{
+    struct sigaction	kact = *act;
+
+    kact.sa_flags |= SA_RESTORER;
+    kact.sa_restorer = ibcs_sigrestorer;
+    /*
+     * man rt_signal(2) says you pass sizeof(sigset_t) or equivalently
+     * sizeof(kact.sa_mask) here.  It's wrong.  _NSIG / 8 is the magic
+     * number it wants.  Anything else gets you an EINVAL.
+     */
+    return IBCS_SYSCALL(rt_sigaction, sig, &kact, oldact, _NSIG / 8);
+}
+
 
 /*
  * Unit testing code.  This is run using "make tests" at the top level or
