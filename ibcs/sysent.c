@@ -74,18 +74,42 @@ static void printk_syscall(const struct sysent* ap, unsigned* sp)
  *	@regs:		saved user registers
  *
  *	This function implements syscall(2) in kernelspace for the lcall7-
- *	based personalities.
+ *	based personalities.  That's a long way of saying all it does is
+ *	dispatch to the exec_domain->handler() function.  All of them just
+ *	call lcall7_dispatch() below.
  */
 void lcall7_syscall(struct pt_regs *regs)
 {
-    __get_user(_AX(regs), ((unsigned long *)_SP(regs)) + 1);
-    _SP(regs) += sizeof(_AX(regs));
+    /*
+     * The emulated architectures pass everything on the stack, in one
+     * of two formats:
+     *
+     *   pt_regs.esp+00:    syscall_no	syscall_no
+     *   pt_regs.esp+04:    arg[1]	[ignored - (a user return address)]
+     *   pt_regs.esp+08:    arg[2]	arg[1]
+     *   pt_regs.esp+08:    arg[3]	arg[2]
+     *     :
+     *   pt_regs.esp+0x:    arg[n]	arg[n-1]
+     *
+     * exec_domain->handler() expects the syscall number to be popped off the
+     * stack in pt_regs.eax.  The two different formats are handled in
+     * exec_domain->handler(), not here.  The handle it by passing the
+     * appropriate "off" parameter to lcall7_dispach() below (which is what
+     * they all end up calling).
+     *
+     * (If you are thinking this is a mess and should be cleaned up I don't
+     * disagree.  It's not my design.  But if you are like me you will have
+     * no way of most of the cleaned up code, and I'm not game to change it
+     * if can't test the result.)
+     */
+    __get_user(_AX(regs), ((unsigned long *)_SP(regs)) + 1); /* get syscall */
+    _SP(regs) += sizeof(_AX(regs));	/* Pop syscall number off the stack */
     current_thread_info()->exec_domain->handler(-1, regs);
-    _SP(regs) -= sizeof(_AX(regs));
+    _SP(regs) -= sizeof(_AX(regs));	/* Restore the stack pointer*/
 }
 
 /*
- * The exec_domain->handler() all call here.
+ * The exec_domain->handler()'s all call here.
  */
 void lcall7_dispatch(struct pt_regs *regs, struct sysent *ap, int off)
 {
@@ -113,9 +137,9 @@ void lcall7_dispatch(struct pt_regs *regs, struct sysent *ap, int off)
     int error;
     if ((size_t)syscall < 512) {
 	/*
-	 * You are allowed to pass syscall numbers directly.   This works on
-	 * 32 bit because the syscall numbering is mostly the same, but on
-	 * amd64 they vary a lot.
+	 * You are allowed to pass syscall numbers directly.   This is useful
+	 * because on 32 bit because the syscall numbering is very similar
+	 * across most personalities, including Linux.
 	 */
         error = (int)linux26_syscall(
 	    (int)syscall, sp[0], sp[1], sp[2], sp[3], sp[4], sp[5]);
@@ -134,7 +158,7 @@ void lcall7_dispatch(struct pt_regs *regs, struct sysent *ap, int off)
 	return;
     } else if (ap->se_nargs == Spl) {
 	/*
-	 * Pass the regs.
+	 * Pass the regs.  The error is returned.
 	 */
 	error = ((int (*)(struct pt_regs*))syscall)(regs);
     } else {
@@ -166,7 +190,9 @@ void lcall7_dispatch(struct pt_regs *regs, struct sysent *ap, int off)
  * The binfmt loaders (eg, coff) call this instead of do_mmap().  They expect
  * it to behave identically (because in the kernel version they did just
  * call do_mmap()).  This gives us a chance to ensure we can write to the
- * created .text segments.
+ * created .text segments and record where the .bss segment is.  The position
+ * of the .bss segment is important because the brk() syscall is really just a
+ * request to grow that segment.
  */
 unsigned long binfmt_mmap(
     struct file* file, unsigned long addr,
@@ -224,7 +250,7 @@ unsigned long binfmt_mmap(
  * We have been called by the code installed by lcall_sigsegv() below.  That
  * code is:
  *
- * 	push	lcall_gate
+ * 	push	$lcall_gate
  * 	call	ibcs_lcall
  *
  * So the stack is:
@@ -253,7 +279,7 @@ void _ibcs_lcall_dummy()
      * the pure assembler ibcs_lcall() in a dummy gcc function.
      *
      * The first step is to allocate a struct pt_regs on the stack and
-     * save all the registers to it.  The code below much match the C
+     * save all the registers to it.  The code below must match the C
      * struct pt_regs definition, which you can find here (you are after
      * the __i386__ one):
      *
@@ -284,7 +310,7 @@ void _ibcs_lcall_dummy()
          /*
 	  * Take a break from saving registers to pt_regs to rearrange
 	  * the stack are about to overwrite.  This will destroy lcall_gate,
-	  * to save that in %ecx.
+	  * so save that in %ecx.
 	  */
 	"movl	64(%%esp),%%ebp\n"	/* %ebp = lcall_gate */
 	/*
@@ -302,10 +328,13 @@ void _ibcs_lcall_dummy()
 	:
     );
     /*
-     * How everything is saved we can dare to call some gcc functions that
+     * Now everything is saved we can dare to call some gcc functions that
      * smash registers.  We need one: the one that allows us to get to
-     * the static variable current->exec_domain->handler.  Gcc set this up
-     * in the _ibcs_lcall_dummy() prelude, but we skipped that.
+     * the static variable current->exec_domain->handler.  Gcc had set this
+     * up for us in the _ibcs_lcall_dummy() prelude, but we skipped that, so
+     * repeat it here.
+     *
+     * Notice this is _very_ compiler dependent.
      */
     asm volatile (
 	"call	__x86.get_pc_thunk.ax\n"
@@ -335,8 +364,9 @@ void _ibcs_lcall_dummy()
 	 * either handle the return themselves or fake it so we work.
 	 *
 	 * The odd handling of eip is because it becomes the return address,
-	 * so it's place on the stack where "ret" below will find it and after
-	 * excuting will leave esp as we found it in ibcs_sigsegv().
+	 * so it's placed on the stack where "ret" below will find it and
+	 * after excuting the ret it will leave esp as we found it in
+	 * ibcs_sigsegv().
 	 */
 	"pushl	56(%%esp)\n"
 	"popf\n"			/* %eflags = pt_regs.eflags */

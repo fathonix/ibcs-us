@@ -1,3 +1,9 @@
+ibcs-us-4.1.4  2019-06-21 Russell Stuart <russell-debian@stuart.id.au>
+
+	* new: It seems to work, so probbaly won't be touched again for a
+	       long time, if ever.  Make final additions to comments to 
+	       job my memory in case I do have to touch it again.
+
 ibcs-us-4.1.3  2019-06-08 Russell Stuart <russell-debian@stuart.id.au>
 
 	* bug: Fix spelling errors in man page.

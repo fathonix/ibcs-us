@@ -11,8 +11,8 @@ ibcs-us \- Emulate other Unix systems
 .I ibcs-us
 is an emulator - it loads and runs a
 .IR program
-designed to run another Unix system,
-which is given the command line options
+designed to execute on another Unix system.
+The emulated program is given the command line options
 .IR args... .
 .I ibcs-us
 intercepts and emulates the system calls
@@ -44,7 +44,7 @@ In a past life most of
 .I ibcs-us
 ran as kernel modules.
 When those modules wanted to tell you something
-(the trace produced by
+(such as the trace produced by
 .BR \-\-trace ,
 errors and warnings) they wrote it to the kernel's log file.  
 This option directs those messages to
@@ -104,7 +104,7 @@ The personalities
 recognises are defined in the source in
 .BR include/ibcs\-us/linux26\-compat/linux/personality.h .
 The personality can be specified as a hexadecimal number,
-and / or as the names in that file separated by a
+and/or as the names in that file separated by a
 .BR + .
 .RS
 .PP
@@ -146,7 +146,8 @@ of the file being run before executing it.
 Emulated programs that use fork(2) (eg, they run other programs)
 or look at what other programs are running may not like
 Linux process ids (pids) above 32767.
-The maximum pid generated can be changed until the next reboot by running:
+The maximum pid Linux will create
+can be changed until the next reboot by running:
 .IP
 sudo sh -c "echo 32768 >/proc/sys/kernel/pid_max"
 .PP

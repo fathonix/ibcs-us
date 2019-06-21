@@ -72,7 +72,7 @@ static void usage(const char* me, const char* fmt, ...)
 	ibcs_writef(2, "options:\n");
         ibcs_writef(2, "  -l L, --log=L        Where to write printk output, like trace.\n");
         ibcs_writef(2, "  -h,   --help         Print this message & exit.\n");
-        ibcs_writef(2, "  -m M, --map=M        Rewrite filenames using map M.\n");
+        ibcs_writef(2, "  -m M, --map=M        Rewrite filenames using map file M.\n");
         ibcs_writef(2, "  -p P, --personality=P Emulate personality P.\n");
         ibcs_writef(2, "  -t T, --trace=T      Set tracing bits to T.\n");
     }

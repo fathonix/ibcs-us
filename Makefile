@@ -14,7 +14,7 @@ $(ALL_COMPONENT_OBJS):	FORCE
 	$(MAKE) --directory $(patsubst %.o, %, $(@F)) ../$@
 
 #
-# Just give me the compilr command lines.
+# Just give me the compiler command lines.
 #
 .PHONY: cc
 cc:

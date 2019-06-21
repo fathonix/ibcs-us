@@ -1,5 +1,11 @@
 #
-# Do a release.  Does the following:
+# Do a release.
+#
+# This is file is identical for _all_ sourceforge projects I host.  It is
+# designed to one thing: automate my sourceforce work flow.  Be warned that
+# I will selfishly reject any patches that don't do that.
+#
+# It does the following:
 # 
 # 1.  Verifies the changelogs have been updated to a consistent version.
 #

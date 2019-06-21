@@ -796,7 +796,7 @@ void* ibcs_malloc(size_t wanted)
     }
     /*
      * We didn't find a block.  Allocate a new one.  Allow space for sticking
-     * a header at the end we know it's size.
+     * a header at the end we so know the allocated blocks size.
      */
     if (IBCS_IS_ERR(p)) {
 	ibcs_fatal_syscall((int)p, "ibcs_malloc brk()");

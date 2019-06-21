@@ -125,11 +125,11 @@ static u_short short_inode_hashval(ino_t ino)
 	h ^= (u_short)(ino >> 16);
     }
     /*
-    * short_inode_map() returns (index + SHORT_INODE_UNMAPPED + 1) to skip special
-    * inode numbers 0, 1 and 2.  If we 'wrap' the calculated hashvalue by
-    * -(SHORT_INODE_BASE + 1), we eventually can see the same inode numbers as
-    *  linux, as long as they fit into 16 bit.
-    */
+     * short_inode_map() returns (index + SHORT_INODE_UNMAPPED + 1) to skip
+     * special inode numbers 0, 1 and 2.  If we 'wrap' the calculated
+     * hashvalue by -(SHORT_INODE_BASE + 1), we 16 bit inode numbers will
+     * be an identity mapping - ie they won't change.
+     */
     return (h + SHORT_INODE_MAX - SHORT_INODE_UNMAPPED - 1) % SHORT_INODE_MAX;
 }
 
@@ -196,6 +196,10 @@ ino_t short_inode_map(ino_t ino)
     down_write(&short_inode_sem);
     si = short_inode_hashval(ino);
     if (SHORT_INODE_IS_UNUSED(short_inode_table[si].ino)) {
+	/*
+	 * The hash slot used by the inode is unused, so just remove it from
+	 * the free chain and allocate it.
+	 */
 	short_inode_lazy_init(si);
 	if (short_inode_oldest == si) {
 	    short_inode_oldest = short_inode_table[short_inode_oldest].lru_next;
@@ -203,15 +207,27 @@ ino_t short_inode_map(ino_t ino)
 	short_inode_table[si].ino = ino;
 	short_inode_hash_join(si, si);
     } else {
+        /*
+	 * The hash slot is used, so check if we are already on the hash chain.
+	 */
 	u_short first = si;
 	do {
 	    si = short_inode_table[si].hash_next;
 	} while (short_inode_table[si].ino != ino && si != first);
 	if (short_inode_table[si].ino == ino) {
+	    /*
+	     * We were on the hash chain - so move us to the end of the
+	     * least recently used list (ie, we are now the most recently
+	     * used).
+	     */
 	    short_inode_lru_free(si);
 	    short_inode_lru_join(short_inode_table[short_inode_oldest].lru_prev, si);
 	    short_inode_lru_join(si, short_inode_oldest);
 	} else {
+	    /*
+	     * We weren't on the hash chain, so grab the least recently used
+	     * entry, free it off the chain it's on, and allocate it to us.
+	     */
 	    short_inode_hash_free(short_inode_oldest);
 	    short_inode_lazy_init(short_inode_oldest);
 	    short_inode_hash_join(short_inode_oldest, short_inode_table[si].hash_next);
@@ -242,6 +258,28 @@ ino_t short_inode_map(ino_t ino)
 
 int short_inode_construct(void)
 {
+    /*
+     * There is a *BIG* implicit assumption here: the memory returned by
+     * ibcs_malloc() will be entirely full of 0's.  If it isn't this code
+     * will break.  The assumption is safesonable because this is enormous
+     * chunk of memory is one of the first things allocoated and so
+     * ibcs_malloc() will have to ask the kernel for it.
+     *
+     * We are doing this on the basis of an even bigger assumption: the
+     * kernel won't actually bother to allocate the memory.  It will just
+     * reserve the pages.  The pages will be lazily allocated by the kernel
+     * (and of course zero filled) when we first reference them.  So
+     * effectively we aren't really allocating the memory, we are just
+     * reserving an address range.  It's very rare for a program to use more
+     * more than just a few inodes, so the large number passed to
+     * ibcs_malloc() notwithstanding this module won't use a lot of memory
+     * unless it actually needs it.
+     *
+     * To ensure the memory isn't allocated we have to avoid reading or
+     * writing it until absolutely necessary.  Thus we can't even zero it
+     * out: we just have to trust it will all work the way we think it
+     * does.
+     */
     int short_inode_table_len = SHORT_INODE_MAX * sizeof(*short_inode_table);
     short_inode_table = (struct short_inode_element*)ibcs_malloc(
 	short_inode_table_len);
@@ -277,6 +315,7 @@ static int current_line_nr;
 	    abort();							\
 	}								\
     } while(0)
+
 
 static void test_short_inode_map(int line_nr, ...)
 {

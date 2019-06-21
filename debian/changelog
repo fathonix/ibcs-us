@@ -1,3 +1,9 @@
+ibcs-us (4.1.4-1) unstable; urgency=low
+
+  * New upstream release - documentation polishing.  No code changes.
+
+ -- Russell Stuart <russell-debian@stuart.id.au>  Fri, 21 Jun 2019 11:39:33 +1000
+
 ibcs-us (4.1.3-1) unstable; urgency=low
 
   * New upstream release - spelling fixes.
