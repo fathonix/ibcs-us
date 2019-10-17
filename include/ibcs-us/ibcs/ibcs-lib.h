@@ -22,6 +22,7 @@ struct sigaction;
 extern unsigned long	abi_personality(const char *);
 extern void		ibcs_fatal(const char* message, ...);
 extern void		ibcs_fatal_syscall(int retval, const char* message, ...);
+extern int		ibcs_fmt(char* out, size_t size, const char* fmt, ...);
 extern void		ibcs_free(void* blk);
 extern void*		ibcs_malloc(size_t size);
 extern int		ibcs_sigaction(int sig, const struct sigaction *act, struct sigaction *oldact);

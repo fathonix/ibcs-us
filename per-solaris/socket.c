@@ -509,7 +509,7 @@ int solaris_sendmsg(int fd, struct sol_nmsghdr *user_msg, unsigned user_flags)
 	struct iovec iov[UIO_FASTIOV];
 	unsigned char ctl[sizeof(struct cmsghdr) + 20];
 	unsigned char *ctl_buf = ctl;
-	struct msghdr kern_msg;
+	struct msghdr kern_msg = { 0 };	/* gcc insists this is initialised */
 	int err, total_len;
 
 	if(msghdr_from_user32_to_kern(&kern_msg, user_msg))
@@ -574,7 +574,7 @@ out:
 int solaris_recvmsg(int fd, struct sol_nmsghdr *user_msg, unsigned user_flags)
 {
 	struct iovec iovstack[UIO_FASTIOV];
-	struct msghdr kern_msg;
+	struct msghdr kern_msg = { 0 };	/* gcc insists this is initialised */
 	char addr[MAX_SOCK_ADDR];
 	struct socket *sock;
 	struct iovec *iov = iovstack;

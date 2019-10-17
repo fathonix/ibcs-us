@@ -234,9 +234,12 @@ static void mock_exit(int status);
 static unsigned mock_write(int fd, char* buffer, unsigned size);
 static void mock_down_write(struct rw_semaphore* s) {}
 static void mock_up_write(struct rw_semaphore* s) {}
+static int mock_rt_sigaction(
+    int signum, const struct sigaction* act, struct sigaction* oldact,
+    size_t sizeof_sigset);
 #endif
 
-static const char *const ibcs_errno_desc[] = {
+static const char* const ibcs_errno_desc[] = {
     [0]			= "Success",
     [EPERM]		= "Operation not permitted",
     [ENOENT]		= "No such file or directory",
@@ -414,8 +417,8 @@ void ibcs_fatal_syscall(int retval, const char* message, ...)
 /*
  * Write at most 'size' chars of printf formatted null terminated string to
  * 'out'.   'size' includes the null. Return the number of characters written,
- * including the NULL.  It 'out' is NULL no characters are written, and size 0
- * means no size limit.
+ * including the NULL.  If 'out' is NULL no characters are written, and in
+ * that case (only) size 0 means no size limit.
  */
 int ibcs_vfmt(char* out, size_t size, const char* fmt, va_list list)
 {
@@ -632,6 +635,22 @@ int ibcs_vfmt(char* out, size_t size, const char* fmt, va_list list)
 
 
 /*
+ * sprintf() does the same thing, but gcc thinks sprintf() can't take a null
+ * 1st argument, whereas our version can.
+ */
+int ibcs_fmt(char* out, size_t size, const char* fmt, ...)
+{
+    va_list		args;
+    int			retval;
+
+    va_start(args, fmt);
+    retval = ibcs_vfmt(out, size, fmt, args);
+    va_end(args);
+    return retval;
+}
+
+
+/*
  * Write a formatted string to fd.
  */
 int ibcs_writef(int fd, const char* fmt, ...)
@@ -669,9 +688,16 @@ long long ibcs_vsyscall(int syscall_no, va_list args)
      * -O levels.
      */
     asm volatile (
+	"push	%%ebx\n\t"
+	"push	%%ecx\n\t"
+	"push	%%esi\n\t"
+	"push	%%edi\n\t"
 	"push	%%ebp\n\t"
-	"mov	%0,%%ebp\n\t"
-	"mov	-4(%%ebp),%%eax\n\t"
+	"mov	%1,%%ebp\n\t"
+	"mov	%0,%%eax\n\t"
+	:					/* No outputs */
+	: "r" (syscall_no), "r" (args)		/* Inputs */);
+    asm volatile (
 	"mov	0(%%ebp),%%ebx\n\t"
 	"mov	4(%%ebp),%%ecx\n\t"
 	"mov	8(%%ebp),%%edx\n\t"
@@ -680,9 +706,11 @@ long long ibcs_vsyscall(int syscall_no, va_list args)
 	"mov	20(%%ebp),%%ebp\n\t"
 	"int	$128\n\t"
 	"pop	%%ebp\n\t"
-	: "=A" (ret)
-	: "r" (args)
-	: "ebx", "ecx", "esi", "edi", "memory"	/* Clobbers */);
+	"pop	%%edi\n\t"
+	"pop	%%esi\n\t"
+	"pop	%%ecx\n\t"
+	"pop	%%ebx\n\t"
+	: "=A" (ret)				/* Outputs */);
     return ret;
 }
 
@@ -709,7 +737,7 @@ long long ibcs_syscall(int syscall_no, ...)
  * It keeps all blocks (free or otherwise) is a circular singularly linked
  * list in ascending address order, with ibcs_malloc_first pointing to
  * block with the lowest address and ibcs_malloc_last pointing to the
- * highest.
+ * block with the highest address.
  *
  * Blocks are flagged as not being free by having the low order address bit
  * (IBCS_MALLOC_BUSY) set.  Free blocks are coalesced as we search the list
@@ -744,7 +772,7 @@ void* ibcs_malloc(size_t wanted)
 
     /*
      * Translate wanted into an intergral number of struct ibcs_malloc_hdrs,
-     * plus we because of there is a struct ibcs_malloc_hdrs at the front
+     * plus one because there is a struct ibcs_malloc_hdrs at the front
      * of the block.
      */
     wanted =
@@ -802,7 +830,7 @@ void* ibcs_malloc(size_t wanted)
 	ibcs_fatal_syscall((int)p, "ibcs_malloc brk()");
     }
     /*
-     * If this new block is adjecent to the previous one if can become part
+     * If this new block is adjecent to the previous one it can become part
      * of it, otherwise link it into the chain.
      */
     if (&ibcs_malloc_last[1] == p) {
@@ -865,18 +893,27 @@ void _ibcs_sigrestorer_dummy(void)
     );
 }
 
-int ibcs_sigaction(int sig, const struct sigaction *act, struct sigaction *oldact)
-{
-    struct sigaction	kact = *act;
+int ibcs_sigaction(
+    int sig, const struct sigaction* act, struct sigaction* oldact
+) {
+    
+    struct sigaction*	kact_ptr;
+    struct sigaction	kact_struct;
 
-    kact.sa_flags |= SA_RESTORER;
-    kact.sa_restorer = ibcs_sigrestorer;
+    if (!act) {
+	kact_ptr = 0;
+    } else {
+	kact_ptr = &kact_struct;
+	kact_struct = *act;
+	kact_struct.sa_flags |= SA_RESTORER;
+	kact_struct.sa_restorer = ibcs_sigrestorer;
+    }
     /*
      * man rt_signal(2) says you pass sizeof(sigset_t) or equivalently
      * sizeof(kact.sa_mask) here.  It's wrong.  _NSIG / 8 is the magic
      * number it wants.  Anything else gets you an EINVAL.
      */
-    return IBCS_SYSCALL(rt_sigaction, sig, &kact, oldact, _NSIG / 8);
+    return IBCS_SYSCALL(rt_sigaction, sig, kact_ptr, oldact, _NSIG / 8);
 }
 
 
@@ -930,6 +967,14 @@ static void* mock_brk(void* addr)
     }
     return mock_brk_state.addr;
 }
+
+static int mock_rt_sigaction(
+    int signum, const struct sigaction* act, struct sigaction* oldact,
+    size_t sizeof_sigset
+) {
+    return 0;
+}
+
 
 /*
  * Syscall's.

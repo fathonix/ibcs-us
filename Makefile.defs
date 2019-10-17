@@ -19,15 +19,16 @@ BUILD_DIR	:= $(ROOT_DIR)/build
 BUILD_TEST_DIR	:= $(BUILD_DIR)/tests
 
 INCLUDES	?=	-I$(ROOT_DIR)/include
+GDBMAP		?=	-ffile-prefix-map=.=./$(COMPONENT_NAME) -ffile-prefix-map=../include/=include/  
 
-CFLAGS_OPT	?=	-O2
+CFLAGS_OPT	?=	-O2 -fno-builtin -ffreestanding
 CFLAGS_DEBUG	?=	-g
 CFLAGS_ARCH	?=	-m32
 
 CFLAGS_WARNINGS	?=	-Wall -Wextra -Wno-unused-parameter -Wno-sign-compare -Wduplicated-cond -Wlogical-op -Wnull-dereference -Wdouble-promotion -Wshadow
 CFLAGS_ERROR	?=	-Werror
 
-CFLAGS		?=	$(INCLUDES) $(CFLAGS_DEBUG) $(CFLAGS_OPT) $(CFLAGS_WARNINGS) $(CFLAGS_ERROR) $(CFLAGS_ARCH) $(CFLAGS_DEFINES) $(IBCS_CFLAGS) $(CFLAGS_EXTRA)
+CFLAGS		?=	$(INCLUDES) $(CFLAGS_DEBUG) $(CFLAGS_OPT) $(CFLAGS_WARNINGS) $(CFLAGS_ERROR) $(CFLAGS_ARCH) $(CFLAGS_DEFINES) $(IBCS_CFLAGS) $(CFLAGS_EXTRA) $(GDBMAP)
 
 #
 # The -Wl,-Ttext=0xbf000000 asks Linux to load the program at that address.
@@ -79,7 +80,7 @@ $(COMPONENT_OBJ): $(COMPONENT_OBJECTS) | $$(@D)
 	$(CC) $(CFLAGS) -nostdlib -no-pie -Wl,-z,now -Wl,-r -o $@ $(COMPONENT_OBJECTS)
 
 $(COMPONENT_BUILD_DIR)/%.o: %.c $(COMPONENT_BUILD_DIR)/%.c.deps | $$(@D)
-	$(CC) $(CFLAGS) -MMD -MP -MT $@ -MF $(@:.o=.c.deps.tmp) -c -o $@ $(@F:.o=.c)
+	$(CC) $(CFLAGS) -MMD -MP -MT $@ -MF $(@:.o=.c.deps.tmp) -c -o $@ ./$(@F:.o=.c)
 	@mv --force $(@:.o=.c.deps.tmp) $(@:.o=.c.deps)
 
 #
@@ -97,7 +98,7 @@ include $(wildcard $(patsubst %.c, $(COMPONENT_BUILD_DIR)/%.c.deps, $(COMPONENT_
 	$(CC) $(CFLAGS) $(IF) -E -o $@ $<
 
 %.s: %.c
-	$(CC) $(CFLAGS) $(IF) -S -o $@ $<
+	$(CC) $(CFLAGS) $(IF) -S -o $@ ./$<
 
 #
 # Building the unit tests.

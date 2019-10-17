@@ -268,7 +268,7 @@ uw7_setrlimit64(int resource, const struct uw7_rlim64 *rlimp)
 	struct rlimit		*lxrlim = current->signal->rlim + resource;
 #endif
 #else
-	struct rlimit		rlim_struct;
+	struct rlimit		rlim_struct = { 0 };	/* gcc insists on this */
 	struct rlimit		*lxrlim = &rlim_struct;
 #endif
 	struct uw7_rlim64	rlim;

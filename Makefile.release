@@ -103,7 +103,7 @@ endif
 	#
 	# Insert the debian packates into the release.
 	#
-	DEBIAN_KERNEL_USE_CCACHE="yes" debuild --preserve-env --preserve-envvar="PATH" -k0xE7843A8C -sa --lintian-opts --info --display-info --display-experimental
+	DEBIAN_KERNEL_USE_CCACHE="yes" debuild --preserve-env --preserve-envvar="PATH" -k0xF5231C62E7843A8C -sa --lintian-opts --info --display-info --display-experimental
 	mkdir -p "$(RELEASE_FILES)"
 	rm ../$(RELEASE_PACKAGE_NAME)_$(RELEASE_DEBIAN_VERSION)_*.build
 	set -xve; mv $$(sed -n '1,/^Files:/d;/^$$/q;s:.* :../:p' ../$(RELEASE_PACKAGE_NAME)_$(RELEASE_DEBIAN_VERSION)_*.changes) ../$(RELEASE_PACKAGE_NAME)_$(RELEASE_DEBIAN_VERSION)_*.changes $(RELEASE_FILES)

@@ -773,7 +773,7 @@ int
 svr4_mknod(char *filename, svr4_o_mode_t mode, svr4_o_dev_t dev)
 {
 int err;
-	if ((mode & 0017000) == 0040000)
+	if ((mode & 00170000) == 0040000)
 		return abi_mkdir(filename, mode);
 	err = SYS(mknod,filename, mode,
 		abi_map(MKDEV (SVR4_O_MAJOR (dev), SVR4_O_MINOR (dev)),-2));

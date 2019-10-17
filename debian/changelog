@@ -1,3 +1,10 @@
+ibcs-us (4.1.5-1) unstable; urgency=low
+
+  * New upstream release.
+  * Compiled & packaged for buster, gcc 8.
+
+ -- Russell Stuart <russell-debian@stuart.id.au>  Thu, 17 Oct 2019 16:28:06 +1000
+
 ibcs-us (4.1.4-1) unstable; urgency=low
 
   * New upstream release - documentation polishing.  No code changes.

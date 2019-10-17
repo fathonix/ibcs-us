@@ -1177,6 +1177,7 @@ error = 0;
 			abi_trace(ABI_TRACE_STREAMS, "disconnect %u\n", fd);
 #endif
 			/* Fall through... */
+			__attribute__((fallthrough));
 		}
 		case T_ORDREL_REQ: {
 			SYS(close,fd);

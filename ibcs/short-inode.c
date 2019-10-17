@@ -261,9 +261,9 @@ int short_inode_construct(void)
     /*
      * There is a *BIG* implicit assumption here: the memory returned by
      * ibcs_malloc() will be entirely full of 0's.  If it isn't this code
-     * will break.  The assumption is safesonable because this is enormous
-     * chunk of memory is one of the first things allocoated and so
-     * ibcs_malloc() will have to ask the kernel for it.
+     * will break.  The assumption is safe because this is enormous chunk of
+     * memory is one of the first things allocoated and so ibcs_malloc()
+     * will have to ask the kernel for it.
      *
      * We are doing this on the basis of an even bigger assumption: the
      * kernel won't actually bother to allocate the memory.  It will just

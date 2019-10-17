@@ -83,7 +83,7 @@ static void usage(const char* me, const char* fmt, ...)
 /*
  * Return an environment variable.
  */
-static const char* ibcs_getenv(const char const** envp, const char* name)
+static const char* ibcs_getenv(const char* const* envp, const char* name)
 {
     int		len = strlen(name);
 
@@ -112,7 +112,7 @@ static const char* ibcs_getenv(const char const** envp, const char* name)
  * the first non-option command line argument.
  */
 static const char* getoption(
-    const char* me, const char* options[], const char const*** argv,
+    const char* me, const char* options[], const char* const* * argv,
     int* optindex, const char** arg
 ) {
     const char*		av = **argv;
@@ -272,7 +272,8 @@ static struct flag_lookup personality_flag_table[] =
 };
 
 static u_long lookup_flag(
-    const char* me, const char* arg, struct flag_lookup* table
+    const char* me, const char* arg, struct flag_lookup* table,
+    const char* option
 ) {
     int			i;
     u_long		not;
@@ -324,7 +325,7 @@ static u_long lookup_flag(
 	arg = *end == '\0' ? end : end + 1;
     }
     if (result == 0) {
-	usage("Can't parse personality %s", orig_arg);
+	usage(me, "Can't parse %s\"%s\".", option, orig_arg);
     }
     return result;
 }
@@ -360,7 +361,7 @@ static const char* options[] = {
 
 
 static void parse_cmdline_options(
-    struct cmdline_options* cmdline_options, const char const** argv
+    struct cmdline_options* cmdline_options, const char* const* argv
 ) {
     const char*		arg;
     const char*		c = strrchr(*argv, '/');
@@ -400,14 +401,14 @@ static void parse_cmdline_options(
 	}
 	if (!strcmp(option, "-p=") || !strcmp(option, "--personality=")) {
 	    cmdline_options->personality = lookup_flag(
-		cmdline_options->me, arg, personality_flag_table);
+		cmdline_options->me, arg, personality_flag_table, option);
 	}
 	if (!strcmp(option, "-t=") || !strcmp(option, "--trace=")) {
 	    cmdline_options->abi_trage_flg = lookup_flag(
-		cmdline_options->me, arg, trace_flags_table);
+		cmdline_options->me, arg, trace_flags_table, option);
 	}
     }
-    if (*argv == (char *)0) {
+    if (*argv == (char*)0) {
         usage(cmdline_options->me, (char*)0);
     }
     cmdline_options->ibcs_argv = argv;
@@ -513,7 +514,7 @@ out:
  * Search along $PATH looking for the program to load.
  */
 static int load_binary(
-    const struct cmdline_options* cmdline_options, const char const** envp
+    const struct cmdline_options* cmdline_options, const char* const* envp
 ) {
     const char*		ibcs_filename = *cmdline_options->ibcs_argv;
     int			ibcs_filename_len = strlen(ibcs_filename);
@@ -582,12 +583,12 @@ static int load_binary(
 /*
  * Since this program doesn't use glibc this is **not** the entry point.
  * It's not static because that's how gcc thinks the world is supposed to
- * be, and whinges if it isn't.  But it work work perfectly well if it was
+ * be, and whinges if it isn't.  But it would work perfectly well if it was
  * static.
  *
  * _start() below is the entry point.
  */
-int main(int argc, const char const** argv, const char const** envp)
+void main(int argc, const char* const* argv, const char* const* envp)
 {
     /*
      * Beware, everything on this stack disappears when the emulation

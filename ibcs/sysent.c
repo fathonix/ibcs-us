@@ -17,7 +17,9 @@
 #include <ibcs-us/linux26-compat/linux/personality.h>
 #include <ibcs-us/linux26-compat/linux/sched.h>
 
-#include <bits/sigset.h>
+#define	__sigset_t_defined	1
+#define __stack_t_defined	1
+/*#include <bits/sigset.h>	// this has goneski's in buster */
 #define	_SIGNAL_H		/* We don't want glibc'c include/signal.h */
 #define __USE_GNU		/* for mcontext->gregs[REG_XXX] definitions */
 #include <sys/ucontext.h>
@@ -78,7 +80,7 @@ static void printk_syscall(const struct sysent* ap, unsigned* sp)
  *	dispatch to the exec_domain->handler() function.  All of them just
  *	call lcall7_dispatch() below.
  */
-void lcall7_syscall(struct pt_regs *regs)
+void lcall7_syscall(struct pt_regs* regs)
 {
     /*
      * The emulated architectures pass everything on the stack, in one
@@ -99,10 +101,10 @@ void lcall7_syscall(struct pt_regs *regs)
      *
      * (If you are thinking this is a mess and should be cleaned up I don't
      * disagree.  It's not my design.  But if you are like me you will have
-     * no way of most of the cleaned up code, and I'm not game to change it
-     * if can't test the result.)
+     * no way to test most of the cleaned up code, and I'm not game to change
+     * it if I can't test the result.)
      */
-    __get_user(_AX(regs), ((unsigned long *)_SP(regs)) + 1); /* get syscall */
+    __get_user(_AX(regs), ((unsigned long*)_SP(regs)) + 1); /* get syscall */
     _SP(regs) += sizeof(_AX(regs));	/* Pop syscall number off the stack */
     current_thread_info()->exec_domain->handler(-1, regs);
     _SP(regs) -= sizeof(_AX(regs));	/* Restore the stack pointer*/
@@ -111,7 +113,7 @@ void lcall7_syscall(struct pt_regs *regs)
 /*
  * The exec_domain->handler()'s all call here.
  */
-void lcall7_dispatch(struct pt_regs *regs, struct sysent *ap, int off)
+void lcall7_dispatch(struct pt_regs* regs, struct sysent* ap, int off)
 {
     if (ap->se_nargs == Unimpl) {
 	abi_printk(ABI_TRACE_UNIMPL, "Unimplemented syscall %S\n");
@@ -460,7 +462,7 @@ static void lcall_sigsegv(int signal, siginfo_t* siginfo, void* context)
     struct sigaction*	sa = &current->_linux26_sigtab[SIGSEGV];
     if (sa->sa_flags & SA_SIGINFO) {
         typedef void (*siginfo_function_ptr)(int, struct siginfo*, void*);
-	((siginfo_function_ptr)sa->sa_handler)(signal, siginfo, context);
+	((siginfo_function_ptr)(void*)sa->sa_handler)(signal, siginfo, context);
     } else if (sa->sa_handler == SIG_IGN) {
         ;
     } else if (sa->sa_handler != SIG_DFL) {
@@ -484,7 +486,7 @@ void sysent_initialise()
     struct sigaction	sa;
 
     memset(&sa, 0, sizeof(sa));
-    sa.sa_handler = (__sighandler_t)lcall_sigsegv;
+    sa.sa_handler = (__sighandler_t)(void*)lcall_sigsegv;
     sa.sa_flags = SA_SIGINFO;
     memset(&sa.sa_mask, ~0, sizeof(sa.sa_mask));
     ret = ibcs_sigaction(SIGSEGV, &sa, (struct sigaction*)0);

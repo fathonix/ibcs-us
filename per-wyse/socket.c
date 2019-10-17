@@ -139,6 +139,7 @@ int ret, a[5]; mm_segment_t fs;
 				return -EINVAL;
 			break;
 		}
+		__attribute__ ((fallthrough));
 	case 0xffff:
 		level = SOL_SOCKET;
 		optname = map_value(current_thread_info()->exec_domain->sockopt_map, optname, 0);
@@ -177,6 +178,7 @@ int ret, a[5]; mm_segment_t fs;
 		default:
 			break;
 		}
+		break;
 	default:
 		/*
 		 * XXX We assume everything else uses the same level and
@@ -220,6 +222,7 @@ int ret, a[5]; mm_segment_t fs;
 				return -EINVAL;
 			break;
 		}
+		__attribute__ ((fallthrough));
 	case 0xffff:
 		level = SOL_SOCKET;
 		optname = map_value(current_thread_info()->exec_domain->sockopt_map, optname, 0);

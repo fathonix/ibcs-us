@@ -31,8 +31,8 @@ static int mock_syscall_getpid();
 static int mock_syscall_getuid32(void);
 static int mock_syscall_kill(pid_t pid, int sig);
 static void* mock_syscall_mmap2(
-    void *addr, size_t length, int prot, int flags, int fd, off_t pg_offset);
-static int mock_syscall_munmap(void *addr, size_t length);
+    void* addr, size_t length, int prot, int flags, int fd, off_t pg_offset);
+static int mock_syscall_munmap(void* addr, size_t length);
 #endif
 
 #include <ibcs-us/linux26-compat/asm/ptrace.h>
@@ -77,8 +77,6 @@ static int mock_syscall_munmap(void *addr, size_t length);
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
-#undef	abi_printk
-#define	abi_printk(f, msg, args...)	mock_abi_printk(f, msg, args)
 #define	abi_trace_fd			mock_abi_trace_fd
 #define	ibcs_malloc(x)			malloc(x)
 #define	ibcs_fatal(m...)		mock_ibcs_fatal(m)
@@ -129,7 +127,6 @@ static int mock_syscall_statfs(const char* filename, struct statfs* stfs);
 static size_t mock_syscall_uname(struct utsname* uts);
 static size_t mock_syscall_write(int fd, const void* buf, size_t len);
 
-static void mock_abi_printk(unsigned flgs, const char* message, ...);
 static void mock_ibcs_fatal(const char* message, ...);
 static void mock_ibcs_fatal_syscall(int retval, const char* message, ...);
 static int mock_ibcs_vfmt(char* out, size_t len, const char* fmt, va_list list);
@@ -444,7 +441,7 @@ int file_set_f_flags(struct file* file, unsigned int new_flags)
 /*
  * This is a replacement for this code, found in svr4/xti.c:
  *
- *	poll_table *wait = &wait_queue.pt;
+ *	poll_table* wait = &wait_queue.pt;
  *	while (!(filep->f_op->poll(filep, wait) & mask)
  *			&& !signal_pending(current)) {
  *		current->state = TASK_INTERRUPTIBLE;
@@ -497,7 +494,7 @@ static void path_construct(struct path* path)
     struct super_block* super_block = &path->mnt->_mnt_sb_real;
     path->mnt->mnt_sb = super_block;
     super_block->s_type = &super_block->_s_type_real;
-    struct dentry *root_dentry = &super_block->_s_root_dentry_real;
+    struct dentry* root_dentry = &super_block->_s_root_dentry_real;
     super_block->s_root = root_dentry;
     struct inode* root_inode = &root_dentry->_d_inode_real;
     root_dentry->d_inode = root_inode;
@@ -695,7 +692,7 @@ int vfs_readdir(struct file* file, filldir_t filldir, void* dirent)
 }
 
 
-int vfs_fstat(int fd, struct kstat *kstat)
+int vfs_fstat(int fd, struct kstat* kstat)
 {
     struct stat64	st64;
     int			ret;
@@ -723,7 +720,7 @@ int vfs_lstat(const char* name, struct kstat* kstat)
 }
 
 
-int vfs_stat(const char *name, struct kstat *kstat)
+int vfs_stat(const char* name, struct kstat* kstat)
 {
     struct stat64	st64;
     int			ret;
@@ -895,7 +892,7 @@ static struct exec_domain* lookup_exec_domain(u_long personality)
 }
 
 
-int register_exec_domain(struct exec_domain *ep)
+int register_exec_domain(struct exec_domain* ep)
 {
     struct exec_domain*	tmp;
     int			err = -EBUSY;
@@ -918,7 +915,7 @@ out:
 }
 
 
-int unregister_exec_domain(struct exec_domain *ep)
+int unregister_exec_domain(struct exec_domain* ep)
 {
     struct exec_domain** epp;
 
@@ -1059,7 +1056,7 @@ int get_unused_fd(void)
 /*
  * Emulate Link semaphore operations.
  */
-static inline int linux26_futex(int *uaddr, int futex_op, int val)
+static inline int linux26_futex(int* uaddr, int futex_op, int val)
 {
     return IBCS_SYSCALL(futex, uaddr, futex_op, val, NULL, NULL, 0);
 }
@@ -1131,7 +1128,7 @@ int register_chrdev(
 }
 
 
-void unregister_chrdev(unsigned int major, const char *name)
+void unregister_chrdev(unsigned int major, const char* name)
 {
     int			i;
 
@@ -1254,7 +1251,7 @@ void kfree(const void* p)
 int linux26_capability(unsigned int flag, int action)
 {
     struct __user_cap_header_struct	hdr;
-    struct __user_cap_data_struct	caps[VFS_CAP_U32_3];
+    struct __user_cap_data_struct	caps[VFS_CAP_U32_3] = { 0 }; /* Shutup gcc warning */
     int					retval;
     u64					old_effective;
     u64					new_effective;
@@ -1313,7 +1310,7 @@ static void module_initialise()
 {
     const Elf32_Ehdr*	ehdr;
     const char*		exe_filename_fmt = "/proc/%d/exe";
-    int			exe_filename_size = sprintf((char*)0, exe_filename_fmt, current->pid);
+    int			exe_filename_size = ibcs_fmt((char*)0, 0, exe_filename_fmt, current->pid);
     char		exe_filename[exe_filename_size];
     struct file*	exe_file;
     long		exe_map_size;
@@ -1375,7 +1372,7 @@ static void module_initialise()
     /*
      * The kernel has loaded the ELF file at some random address in memory,
      * which means all the code in the ELF file has been relocated by an
-     * unknown amount.  This means functionions pointed to by the .init_array
+     * unknown amount.  This means functions pointed to by the .init_array
      * also have to relocated by that same unknown amount which makes the raw
      * pointers in the ELF file useless.
      *
@@ -1478,7 +1475,7 @@ void sockfd_put(struct socket* sock)
 /*
  * Emulate the kernel's sock_sendmsg() API.
  */
-int sock_sendmsg(struct socket *sock, struct msghdr *msg, size_t len)
+int sock_sendmsg(struct socket* sock, struct msghdr* msg, size_t len)
 {
     return IBCS_SYSCALL(sendmsg, sock->file->fd, msg, msg->msg_flags);
 }
@@ -1780,12 +1777,18 @@ static long long linux26_signal(int syscall_no, va_list list)
 {
     int			signum = va_arg(list, int);
     __sighandler_t	handler = va_arg(list, __sighandler_t);
-    struct sigaction	sa;
+    struct sigaction	act;
+    struct sigaction	oldact;
+    int			err;
 
-    memset(&sa, '\0', sizeof(sa));
-    sa.sa_handler = handler;
-    return SYS(
-	rt_sigaction, signum, &sa, (struct sigaction*)0, sizeof(sa.sa_mask));
+    memset(&act, 0, sizeof(act));
+    act.sa_handler = handler;
+    act.sa_flags = SA_ONESHOT | SA_NOMASK;
+    err = linux26_syscall(__NR_sigaction, signum, &act, &oldact);
+    if (IBCS_IS_ERR(err)) {
+        return err;
+    }
+    return (long)oldact.sa_handler;
 }
 
 
@@ -1953,7 +1956,7 @@ static int mock_syscall_open(const char* path, int mode, int flags)
 {
     mock_syscall_open_path = path;
     if (!strstr(path, "/TEST")) {
-        extern int open(const char *pathname, int flags, mode_t mode);
+        extern int open(const char* pathname, int flags, mode_t mode);
 	return open(path, mode, flags);
     }
     return 111;
@@ -2028,10 +2031,6 @@ static size_t mock_syscall_uname(struct utsname* uts)
 static size_t mock_syscall_write(int fd, const void* buf, size_t len)
 {
     return 0;
-}
-
-static void mock_abi_printk(unsigned flgs, const char* message, ...)
-{
 }
 
 static void mock_ibcs_fatal(const char* message, ...)

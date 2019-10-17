@@ -72,7 +72,7 @@ sigset_t map_sigvec_to_kernel(u_long vec, u_long map[])
 }
 
 
-int map_value(struct map_segment *m, int val, int def)
+int map_value(struct map_segment* m, int val, int def)
 {
     struct map_segment*	seg;
 

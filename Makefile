@@ -55,7 +55,7 @@ distclean: clean
 # is in effect they define a function called unit_test_COMPONENT_FILENAME_c(),
 # and when you call it a unit test is done.
 #
-.PHONY:	tests
+.PHONY:	unit-tests
 TEST_SRCS	:= $(shell $(UNIT_TEST_GREP) $(sort $(foreach dir, $(ALL_COMPONENTS), $(dir)/*.c)))
 unit-tests: $(BUILD_DIR)/tests/unit-tests
 	$(BUILD_DIR)/tests/unit-tests

@@ -1,3 +1,10 @@
+ibcs-us-4.1.5  2019-10-17 Russell Stuart <russell-debian@stuart.id.au>
+
+	* bug: Fix usage error for unrecognised flag.
+	* bug: Fix signal handling.
+	* bug: Fix debug source paths.
+	* new: Port to gcc 8
+
 ibcs-us-4.1.4  2019-06-21 Russell Stuart <russell-debian@stuart.id.au>
 
 	* new: It seems to work, so probbaly won't be touched again for a
