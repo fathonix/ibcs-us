@@ -315,7 +315,8 @@ static int svr4_filldir(void * __buf, const char * name, int namlen,
 	put_user(reclen, &dirent->d_reclen);
 	if (copy_to_user(dirent->d_name, name, namlen))
 		return -EFAULT;
-	put_user(0, dirent->d_name + namlen);
+	char* name_end = &dirent->d_name[namlen];
+	put_user(0, name_end);
 	{	char *ptr = (char *)dirent;
 		ptr += reclen;
 		dirent = (struct dirent *)ptr;

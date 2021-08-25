@@ -16,8 +16,8 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
-#ifndef _IBCS_US_IBCS_LIB_TRACE_H
-#define _IBCS_US_IBCS_LIB_TRACE_H
+#ifndef _IBCS_US_IBCS_TRACE_H
+#define _IBCS_US_IBCS_TRACE_H
 #include <stddef.h>
 
 /*

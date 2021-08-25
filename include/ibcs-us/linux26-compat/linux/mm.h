@@ -23,6 +23,9 @@
 #define	PAGE_MASK	(~(PAGE_SIZE - 1))
 #define	PAGE_ALIGN(x)	(((x) + PAGE_SIZE - 1) & PAGE_MASK)
 
+extern int		binfmt_mmap_errno;
+extern const char*	binfmt_mmap_error;
+
 extern unsigned long binfmt_mmap(
     struct file* file, unsigned long addr,
     unsigned long len, unsigned long prot,

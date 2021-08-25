@@ -21,22 +21,43 @@ ibcs-us
 Dependencies
 ------------
 
-  gcc (32 or 64bit), the glibc-i386 headers (the libc6-dev-i386
-  package on Debian) and the linux-libc headers for i386 (the
-  linux-libc-dev:i386 package on Debian).
+  - gcc (32 or 64bit), the glibc-i386 headers (the libc6-dev-i386
+    package on Debian), and
+
+  - the linux-libc headers for i386 (the linux-libc-dev:i386
+    package on Debian).
 
 
 Building & Installing
 ---------------------
 
-  cd src-directory
-  make
-  cp build/ibcs /install/location/.
-  # either:
-  sudo setcap cap_sys_rawio+ep /install/location/ibcs-us
-  # or:
-  sudo chown root. /install/location/ibcs-us
-  sudo chmod u+s /install/location/ibcs-us
+  Building:
+    cd src-directory
+    make
+
+  Not building:
+    Ibcs-us is a statically linked program with no dependencies.
+    This means the compiled version in the Debian .deb package will
+    run on on all systems ibcs-us works on. To extract the relevant
+    bits from the .deb in the download area on sourceforge use the
+    following steps:
+
+      ar x ibcs-us_4.1.5-1_amd64.deb
+      tar xJf data.tar.xz ./usr/bin ./usr/share/man
+
+    This will create the following files will be in the current
+    directory:
+
+      usr/bin/ibcs-us			- the executable program
+      usr/share/man/man1/ibcs-us.1	- the man page.
+
+  Installing:
+    cp build/ibcs /install/location/.
+    # either:
+    sudo setcap cap_sys_rawio+ep /install/location/ibcs-us
+    # or:
+    sudo chown root. /install/location/ibcs-us
+    sudo chmod u+s /install/location/ibcs-us
 
 
 Developer Notes

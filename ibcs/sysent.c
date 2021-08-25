@@ -196,6 +196,9 @@ void lcall7_dispatch(struct pt_regs* regs, struct sysent* ap, int off)
  * of the .bss segment is important because the brk() syscall is really just a
  * request to grow that segment.
  */
+int			binfmt_mmap_errno;
+const char*		binfmt_mmap_error;
+
 unsigned long binfmt_mmap(
     struct file* file, unsigned long addr,
     unsigned long len, unsigned long prot,
@@ -203,6 +206,7 @@ unsigned long binfmt_mmap(
 ) {
     unsigned long	mmap_prot = prot;
     unsigned long	mmap_flag = flag;
+
     if (prot & PROT_EXEC && (!(prot & PROT_READ) || !(prot & PROT_WRITE))) {
         mmap_prot |= PROT_READ | PROT_WRITE;
 	mmap_flag &= ~MAP_DENYWRITE;
@@ -310,8 +314,8 @@ void _ibcs_lcall_dummy()
 	"movl	60(%%esp),%%edx\n"
 	"movl	%%edx,48(%%esp)\n"	/* pt_regs.eip */
          /*
-	  * Take a break from saving registers to pt_regs to rearrange
-	  * the stack are about to overwrite.  This will destroy lcall_gate,
+	  * Take a break from saving registers to pt_regs to rearrange the
+	  * stack we are about to overwrite.  This will destroy lcall_gate,
 	  * so save that in %ecx.
 	  */
 	"movl	64(%%esp),%%ebp\n"	/* %ebp = lcall_gate */
@@ -414,7 +418,7 @@ void _ibcs_lcall_dummy()
  * way (better as in faster, safer because the code segment could be left
  * !PROT_WRITE and neater to boot) would be to use the kernels' modify_ldt
  * call to create a call gate, but as it happens modify_ldt doesn't know
- * what a call gate it so it always fails.  So instead we reply on the
+ * what a call gate is so it always fails.  So instead we reply on the
  * lcall7's causing a SIGSEGV, and use self modifying code. Ick, ick, ick.
  *
  * As SIGSEGV's don't normally happen this is almost certainly is a lcall

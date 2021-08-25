@@ -4,7 +4,7 @@
  * License
  * -------
  *
- * Copyright (c) 2019 Russell Stuart <russell+ibcs@stuart.id.au>
+ * Copyright (c) 2019,2021 Russell Stuart <russell+ibcs@stuart.id.au>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -27,8 +27,8 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef _IBCS_US_LINUX26_COMPAT_H
-#define _IBCS_US_LINUX26_COMPAT_H
+#ifndef _IBCS_US_IBCS_LINUX26_COMPAT_H
+#define _IBCS_US_IBCS_LINUX26_COMPAT_H
 #include <stdarg.h>
 #include <stddef.h>
 

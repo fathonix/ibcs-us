@@ -153,7 +153,7 @@ struct rw_semaphore uts_sem;
 /*
  * The kernal has a number on internal structures associated with the file
  * system.  Some, like "struct kstat" mirror a similar structure exposed to
- * usrr space, eg "struct stat64" in the case of "struct kstat".
+ * user space, eg "struct stat64" in the case of "struct kstat".
  *
  * Emulate those kernel structures here.
  */
@@ -205,10 +205,10 @@ static void kstat_to_inode(struct inode* inode, const struct kstat* kstat)
 
 
 /*
- * Initialise the brk() syscall machinery, so do_brk() and linix26_brk()
+ * Initialise the brk() syscall machinery, so do_brk() and linux26_brk()
  * have the things they need to work with.
  * 
- * The binfmt loader is means to have set the mm->brk to where it expects
+ * The binfmt loader is meant to have set the mm->brk to where it expects
  * the brk() to be.  If the bss is loaded this will be at the end of .bss
  * section.
  */
@@ -247,7 +247,7 @@ static void init_brk()
 
 
 /*
- * Emulate the kernel's "struct file->f_op" vtable.  If is a table of functions
+ * Emulate the kernel's "struct file->f_op" vtable.  It is a table of functions
  * associated with every file descriptor that says how to open, close, write,
  * read, lseek, yada yada the file.  We provide an emulation that uses the
  * native Linux syscalls to provide the interface.
@@ -479,7 +479,7 @@ int linux26_schedule_timeout(long period_in_jiffies)
 
 
 /*
- * The "struct path" is a self structure containing inodes, dentry_'s a
+ * Our "struct path" is a custom structure containing inodes, dentry_'s a
  * vfsmount and a super_block, all knitted together the way a kernel would
  * to it.  This does the knitting.
  */
@@ -824,6 +824,8 @@ int load_binfmt(const char* executable_path)
 out:
     if (binprm.file != (struct file*)0) {
 	linux26_fclose(binprm.file);
+    }
+    if (!IBCS_IS_ERR(retval)) {
 	init_brk();
     }
     return retval;
@@ -869,10 +871,11 @@ unsigned long do_brk(unsigned long addr, unsigned long len)
 
 /*
  * Our emulation of the kernel's exec_domain.  This was provided in the
- * 2.6.32 kernel, but was ripped out by 4.0.  An exec_domain is just the
- * kernel API.  There is of course a native Linux one, but the kernel used
- * to allow for multiple of them via the exec_domain mechanism.  This was
- * used to run binaries from other systems like Xenis and SysV.
+ * 2.6.32 kernel, but was ripped out by 4.0.  An exec_domain is just a vtable
+ * for the kernel's implementation of the user space API.  There is of course
+ * a native Linux one, but the kernel used to allow for multiple of them via
+ * the exec_domain mechanism.  This was used to run binaries from other
+ * systems like Xenis and SysV.
  *
  * The exec_domain is identified by it's exec_domain->personality, which is
  * just an integer make up of a "id" in the lower order byte and some flags
@@ -1230,7 +1233,7 @@ int open_chrdev(const char* path, int mode, int flags)
 
 
 /*
- * kmalloc() and kfree() can just our malloc().
+ * kmalloc() and kfree() can just use our malloc().
  */
 void* kmalloc(size_t size, gfp_t flags)
 {
@@ -1291,14 +1294,18 @@ int linux26_capability(unsigned int flag, int action)
 
 
 /*
- * Initialise the modules by calling there init functions.  Linux module
- * init functions are declared using the macro:
+ * The modues implementing the personalities for this program were in a past
+ * life kernel modules.  They now are run by us in user space of course, but
+ * since I kept changes to their source to a minimum they still think they are
+ * kernel modules.  Kernel modules declare their an initialisation function
+ * they expect the kernel to call when they are loaded using:
  *
  *     module_init(coff_module_init)
  *
- * Here that macro prefixed the function with __attribute__((constructor)),
- * which is gcc'ism that puts the passed pointer into a ELF section called
- * ".init_array".
+ * We must arrange for those functions to be called just as the kernel used
+ * to.  We arrange for the macro above to prefix the function with the gcc
+ * __attribute__((constructor)) decorator, which is gcc'ism that puts the
+ * passed pointer into a ELF section called ".init_array".
  *
  * Our task here is to extract those function pointers and call them.
  */
@@ -1401,7 +1408,7 @@ out:
 
 
 /*
- * We have to implement our own syscall().
+ * Initialise the data structures used by this file.
  */
 void linux26_compat_init(const char* ibcs_program_name)
 {
@@ -1488,8 +1495,10 @@ int sock_recvmsg(struct socket* sock, struct msghdr* msg, size_t total_len, int 
 
 
 /*
- * Do a syscall, but go via our "emulate the linux26 kernel in userspace"
- * code if required.
+ * The functions below emulate kernel 2.6.32 user space syscalls.  Most of
+ * them can be passed directly through to the kernel we are running on,
+ * but some can't and are implemented by the functions named after them
+ * below.
  */
 typedef long long (*linux26_syscall_t)(int syscall_no, va_list list);
 
@@ -1758,7 +1767,7 @@ static long long linux26_rt_sigaction(int syscall_no, va_list list)
 
     /*
      * This is here for sysent.c/lcall_sigsegv().  The emulated program
-     * can't be allowed to override SIGSEGV.
+     * can't be allowed to override the SIGSEGV sigaction() it installed.
      */
     if (signum == SIGSEGV && oldact) {
 	*oldact = current->_linux26_sigtab[signum];

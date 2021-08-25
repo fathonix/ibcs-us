@@ -99,7 +99,7 @@ static struct rw_semaphore short_inode_sem;
  * The short_inode_table is memory mapped, so a page in it isn't allocated by
  * the kernel until we write to it.  Since most programs only open a few files
  * it's likely it won't use most of them, so if we avoid writing them till
- * the last moment it's likely the 786K we mmap()'ed is not at wasteful as it
+ * the last moment it's likely the 786K we mmap()'ed is not as wasteful as it
  * seems.
  */
 static void short_inode_lazy_init(u_short entry)
@@ -127,7 +127,7 @@ static u_short short_inode_hashval(ino_t ino)
     /*
      * short_inode_map() returns (index + SHORT_INODE_UNMAPPED + 1) to skip
      * special inode numbers 0, 1 and 2.  If we 'wrap' the calculated
-     * hashvalue by -(SHORT_INODE_BASE + 1), we 16 bit inode numbers will
+     * hashvalue by -(SHORT_INODE_BASE + 1), the 16 bit inode numbers will
      * be an identity mapping - ie they won't change.
      */
     return (h + SHORT_INODE_MAX - SHORT_INODE_UNMAPPED - 1) % SHORT_INODE_MAX;

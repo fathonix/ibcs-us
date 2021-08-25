@@ -877,9 +877,9 @@ void ibcs_free(void* blk)
 
 
 /*
- * The real Linux API requires a sa_restorer to given to the kernel,
- * who sole job (as far as the kernel is concerned) is to call the
- * rt_sigreturn syscall.  glibc uses it to do fancy nancy things.
+ * The real Linux sigaction API requires a sa_restorer to given to the
+ * kernel, whose sole job (as far as the kernel is concerned) is to call
+ * the rt_sigreturn syscall.  glibc uses it to do fancy nancy things.
  */
 extern void ibcs_sigrestorer(void);
 void _ibcs_sigrestorer_dummy(void)

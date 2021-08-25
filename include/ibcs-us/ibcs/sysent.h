@@ -1,5 +1,5 @@
-#ifndef _IBCS_US_IBCS_LIB_SYSENT_H
-#define _IBCS_US_IBCS_LIB_SYSENT_H
+#ifndef _IBCS_US_IBCS_SYSENT_H
+#define _IBCS_US_IBCS_SYSENT_H
 #include <stddef.h>
 #include <linux/unistd.h>
 

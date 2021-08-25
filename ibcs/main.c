@@ -36,7 +36,6 @@
  * Stuff externally accessible.
  */
 static u_long	cmdline_personality;
-unsigned	abi_trace_flg;
 
 u_long abi_personality(const char* executable_path)
 {
@@ -70,8 +69,8 @@ static void usage(const char* me, const char* fmt, ...)
     } else {
 	ibcs_writef(2, "usage: %s [options] ibcs-executable [arg..]\n", me);
 	ibcs_writef(2, "options:\n");
-        ibcs_writef(2, "  -l L, --log=L        Where to write printk output, like trace.\n");
         ibcs_writef(2, "  -h,   --help         Print this message & exit.\n");
+        ibcs_writef(2, "  -l L, --log=L        Where to write printk output, like trace.\n");
         ibcs_writef(2, "  -m M, --map=M        Rewrite filenames using map file M.\n");
         ibcs_writef(2, "  -p P, --personality=P Emulate personality P.\n");
         ibcs_writef(2, "  -t T, --trace=T      Set tracing bits to T.\n");
@@ -98,7 +97,7 @@ static const char* ibcs_getenv(const char* const* envp, const char* name)
 
 /*
  * Poor mans argument parser.  Unlike the GNU's getopt, this is reentrant.
- * Passed is a NULL terminated list of strings, called options, that is
+ * Passed is a NULL terminated list of strings, called options, that are
  * the options recognised written as they will appear on the command line
  * (eg "-h" or "--help").  If the option ends with a '=' it requires an
  * argument.  argv and optindex are work variables, which must be initialised
@@ -491,7 +490,7 @@ static void set_credentials(
     }
     /*
      * Drop all capabilities.  They weren't a thing when the systems we are
-     * emulating were existed, so they could not have had any set for them.
+     * emulating existed, so they could not have had any set for them.
      */
     struct __user_cap_header_struct	hdr;
     struct __user_cap_data_struct	caps[VFS_CAP_U32_3];
@@ -618,6 +617,11 @@ void main(int argc, const char* const* argv, const char* const* envp)
     }
     int ret = load_binary(&cmdline_options, envp);
     if (IBCS_IS_ERR(ret)) {
+        if (binfmt_mmap_error) {
+	    ibcs_fatal_syscall(
+		binfmt_mmap_errno, "%s - %s", *cmdline_options.ibcs_argv,
+		binfmt_mmap_error);
+	}
 	ibcs_fatal_syscall(ret, *cmdline_options.ibcs_argv);
     }
     if (current->exec_domain == (struct exec_domain*)0) {
@@ -637,8 +641,9 @@ void main(int argc, const char* const* argv, const char* const* envp)
     /*
      * Our final step is a disappearing act.  We've squirreled away all we
      * need to know in static variables, so we can remove all signs we
-     * have even been here from the stack so the gets program the stack it
-     * would have got if run natively.   See _start() below for the format.
+     * have even been here from the stack so the emulated programs entry
+     * point gets the stack it would have got if run natively.   See _start()
+     * below for the format.
      */
     argc -= cmdline_options.ibcs_argv - argv;
     asm volatile (

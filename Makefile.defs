@@ -120,10 +120,11 @@ $(COMPONENT_TEST_NAME)/%.o: %.c $(COMPONENT_BUILD_DIR)/%.c.deps | $$(@D)
 
 $(COMPONENT_TEST_NAME)/test-%: $(COMPONENT_TEST_NAME)/%.o
 	( \
-	  printf "extern void unit_test_%s_%s_c(int ac, const char** av, const char** ep);\n" $(notdir $(@D)) $(subst -,_,$(patsubst test-%, %, $(@F:.o=))); \
-	  printf "int main(int ac, const char** av, const char** ep)\n{\n"; \
-	  printf "    unit_test_%s_%s_c(ac, av, ep);\n" $(notdir $(@D)) $(subst -,_,$(patsubst test-%, %, $(@F:.o=))); \
-	  printf "}\n" \
+	    printf "extern void unit_test_%s_%s_c(int ac, const char** av, const char** ep);\n" $(notdir $(@D)) $(subst -,_,$(patsubst test-%, %, $(@F:.o=))); \
+	    printf "int main(int ac, const char** av, const char** ep)\n{\n"; \
+	    printf "    unit_test_%s_%s_c(ac, av, ep);\n" $(notdir $(@D)) $(subst -,_,$(patsubst test-%, %, $(@F:.o=))); \
+	    printf "    return 0;\n"; \
+	    printf "}\n" \
 	) > $@.c
 	$(CC) $(CFLAGS) -Og -DUNIT_TEST -o $@ $@.c $^
 
@@ -139,7 +140,6 @@ $(BUILD_DIR) $(COMPONENT_BUILD_DIR) $(COMPONENT_TEST_NAME):
 
 .PHONY: clean
 clean::
-	rm -rf *.[ios] $(COMPONENT_OBJ) $(COMPONENT_BUILD_DIR)
-
-
+	rm -rf *.[ios] $(COMPONENT_OBJ) $(COMPONENT_BUILD_DIR) \
+	    $(COMPONENT_TEST_NAME)
 endif

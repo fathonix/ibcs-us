@@ -2,8 +2,8 @@
  * This module maps inode's to 16 bit numbers, as required by some
  * personalities.
  */
-#ifndef _IBCS_US_IBCS_LIB_SHORT_INODE_H
-#define _IBCS_US_IBCS_LIB_SHORT_INODE_H
+#ifndef _IBCS_US_IBCS_SHORT_INODE_H
+#define _IBCS_US_IBCS_SHORT_INODE_H
 #include <stddef.h>
 
 #include <ibcs-us/linux26-compat/linux/types.h>

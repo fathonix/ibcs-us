@@ -25,6 +25,7 @@
 #define	abi_printk(f, msg, args...)	mock_abi_printk(f, msg, args)
 #define	ibcs_malloc(x)			malloc(x)
 #define	ibcs_fatal(m, a...)		mock_ibcs_fatal(m, a)
+#define	ibcs_fatal_syscall(r, m, a...)	mock_ibcs_fatal_syscall(r, m, a)
 #define	ibcs_free(x)			free(x)
 #define	linux26_fopen(name, mode)	mock_linux26_fopen(name, mode)
 #define	linux26_fclose(file)		mock_linux26_fclose(file)
@@ -32,6 +33,7 @@
 
 static void mock_abi_printk(unsigned flgs, const char* message, ...);
 static void mock_ibcs_fatal(const char* message, ...);
+static void mock_ibcs_fatal_syscall(int r, const char* message, ...);
 static int mock_linux26_fclose(struct file* f);
 static struct file* mock_linux26_fopen(const char* name, int mode);
 static int mock_vfs_fstat(int fd, struct kstat* kst);
@@ -467,8 +469,8 @@ static void test_normalise_path(
     memset(normalise_path_dst, '\0', sizeof(normalise_path_dst));
     int normalise_path_result = normalise_path(
 	    normalise_path_dst, sizeof(normalise_path_dst), src, is_abs);
-    MUST_BE_TRUE(normalise_path_result == retval, line_no);
-    MUST_BE_TRUE(!strcmp(normalise_path_dst, dst), line_no);
+    MUST_BE_TRUE(line_no, normalise_path_result == retval);
+    MUST_BE_TRUE(line_no, !strcmp(normalise_path_dst, dst));
 }
 
 static const char* fop_read_result;
@@ -524,6 +526,18 @@ static void mock_ibcs_fatal(const char* message, ...)
 
     va_start(list, message);
     vsprintf(ibcs_fatal_message, message, list);
+    va_end(list);
+}
+
+static char ibcs_fatal_syscall_message[4096];
+static void mock_ibcs_fatal_syscall(int errno, const char* message, ...)
+{
+    int len;
+    va_list list;
+
+    va_start(list, message);
+    len = sprintf(ibcs_fatal_syscall_message, "errno: %d: ", errno);
+    vsprintf(ibcs_fatal_syscall_message + len, message, list);
     va_end(list);
 }
 
