@@ -680,10 +680,14 @@ int vfs_readdir(struct file* file, filldir_t filldir, void* dirent)
 	if (IBCS_IS_ERR(retval) || retval <= sizeof(buf.dirent)) {
 	    break;
 	}
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wstringop-overread"
 	retval = (*filldir)(
 	    dirent, buf.dirent.d_name, strlen(buf.dirent.d_name),
-	    buf.dirent.d_off, buf.dirent.d_ino, buf.dirent.d_type
+	    buf.dirent.d_off, buf.dirent.d_ino, buf.dirent.d_type,
+            file->f_dentry->d_inode->i_dev
 	);
+#pragma GCC diagnostic pop
 	if (IBCS_IS_ERR(retval)) {
 	    break;
 	}

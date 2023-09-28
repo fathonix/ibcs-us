@@ -277,6 +277,7 @@ unsigned long binfmt_mmap(
  */
 extern int ibcs_lcall(void);
 
+void _ibcs_lcall_dummy();
 void _ibcs_lcall_dummy()
 {
     /*

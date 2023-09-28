@@ -126,6 +126,7 @@ struct scodir {
 };
 int sco_getdents(int fd, char *dirent, int count)
 {
+        dev_t dev;
 	int rval;
 	unsigned int Pos, Node;
 	char *p;
@@ -135,6 +136,7 @@ int sco_getdents(int fd, char *dirent, int count)
 	rval = SYS(getdents,fd,dirent,count);
 	if (rval <= 0) return rval;
 
+        dev = fget(fd)->f_dentry->d_inode->i_dev;
 	Pos = 0; p = dirent;	
 	while (Pos < rval) {
 		pEnt = (struct scodir *)p;
@@ -146,7 +148,7 @@ int sco_getdents(int fd, char *dirent, int count)
 #ifndef CONFIG_ABI_SHINOMAP
 		Node = abi_map(Node,1);
 #else
-		Node = linux_to_svr4_ino_t(abi_map(Node,1));
+		Node = linux_to_svr4_ino_t(abi_map(Node,1), dev);
 #endif
 		put_user(Node,&pEnt->inode);
 	}

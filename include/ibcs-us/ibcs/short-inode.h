@@ -11,5 +11,5 @@
 extern int short_inode_construct();
 extern void short_inode_destruct(void);
 
-extern ino_t short_inode_map(ino_t ino);
+extern ino_t short_inode_map(ino_t ino, dev_t dev);
 #endif

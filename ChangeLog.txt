@@ -1,3 +1,15 @@
+ibcs-us-4.2.0  2023-09-28 Russell Stuart <russell-debian@stuart.id.au>
+
+	* new: Single inode number namespace for all devices
+
+ibcs-us-4.1.8  2023-09-28 Russell Stuart <russell-debian@stuart.id.au>
+
+	* bug: fix short_inode_map() infinite loop.
+
+ibcs-us-4.1.7  2023-09-19 Russell Stuart <russell-debian@stuart.id.au>
+
+	* new: Port to Debian bookworm.
+
 ibcs-us-4.1.6  2021-08-25 Russell Stuart <russell-debian@stuart.id.au>
 
 	* new: Improve error messae when mmap fails.

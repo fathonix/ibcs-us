@@ -4,4 +4,4 @@
 # emulated.  As a consequnce ibcs-us doesn't need any libc
 # library, so not statically linking it would be wasteful.
 #
-ibcs-us binary: statically-linked-binary usr/bin/ibcs-us
+ibcs-us binary: statically-linked-binary [usr/bin/ibcs-us]

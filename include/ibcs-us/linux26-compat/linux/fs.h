@@ -146,7 +146,7 @@ extern int file_set_f_flags(struct file* file, unsigned int new_flags);
 
 typedef int (*filldir_t)(
     void* dirent, const char* lower_name, int lower_namelen,
-    loff_t offset, u64 ino, unsigned int d_type);
+    loff_t offset, u64 ino, unsigned int d_type, dev_t dev);
 
 extern int linux26_user_fpath(int fd, struct path* path);
 extern int register_chrdev(

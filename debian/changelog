@@ -1,3 +1,22 @@
+ibcs-us (4.2.0-1) unstable; urgency=low
+
+  * New upstream release - single inode numbering namespace for all dev's.
+
+ -- Russell Stuart <russell-debian@stuart.id.au>  Thu, 28 Sep 2023 19:30:25 +1000
+
+ibcs-us (4.1.8-1) unstable; urgency=low
+
+  * New upstream release - fix short inode mapping.
+
+ -- Russell Stuart <russell-debian@stuart.id.au>  Thu, 28 Sep 2023 18:40:10 +1000
+
+ibcs-us (4.1.7-1) unstable; urgency=low
+
+  * New upstream release.
+  * Compiled & packaged for bookwork, gcc 12.
+
+ -- Russell Stuart <russell-debian@stuart.id.au>  Tue, 19 Sep 2023 09:20:46 +1000
+
 ibcs-us (4.1.6-1) unstable; urgency=low
 
   * New upstream release.

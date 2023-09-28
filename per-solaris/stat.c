@@ -44,7 +44,7 @@ report_sol_stat64(struct kstat *stp, struct sol_stat64 *bufp)
 
 
 	buf.st_dev	= linux_to_sol_dev_t(abi_map(stp->dev,2));
-	buf.st_ino	= linux_to_sol_ino_t(abi_map(stp->ino,1));
+	buf.st_ino	= linux_to_sol_ino_t(abi_map(stp->ino,1), stp->dev);
 	buf.st_mode	= stp->mode;
 	buf.st_nlink	= stp->nlink;
 	buf.st_uid	= linux_to_sol_uid_t(stp->uid);

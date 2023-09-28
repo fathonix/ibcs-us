@@ -8,6 +8,7 @@
  * we expect gcc will actually use the builtin, but if you don't optimise
  * it won't.
  */
+void* memchr(const void* s, int b, unsigned c);
 void* memchr(const void* s, int b, unsigned c)
 {
     const unsigned char* cs;
@@ -22,6 +23,7 @@ void* memchr(const void* s, int b, unsigned c)
 }
 
 
+int memcmp(const void* s1, const void* s2, unsigned c);
 int memcmp(const void* s1, const void* s2, unsigned c)
 {
     const unsigned char* cs1 = s1;
@@ -35,6 +37,7 @@ int memcmp(const void* s1, const void* s2, unsigned c)
 }
 
 
+void* mempcpy(void* d, const void* s, unsigned c);
 void* mempcpy(void* d, const void* s, unsigned c)
 {
     unsigned char*	cd = d;
@@ -47,6 +50,7 @@ void* mempcpy(void* d, const void* s, unsigned c)
 }
 
 
+void* memcpy(void* d, const void* s, unsigned c);
 void* memcpy(void* d, const void* s, unsigned c)
 {
     unsigned char*	cd = d;
@@ -59,6 +63,7 @@ void* memcpy(void* d, const void* s, unsigned c)
 }
 
 
+void* memset(void* d, int b, unsigned c);
 void* memset(void* d, int b, unsigned c)
 {
     unsigned char*	cd;
@@ -71,6 +76,7 @@ void* memset(void* d, int b, unsigned c)
 }
 
 
+int strcasecmp(const char* c1, const char* c2);
 int strcasecmp(const char* c1, const char* c2)
 {
     int			ret;
@@ -84,6 +90,7 @@ int strcasecmp(const char* c1, const char* c2)
 }
 
 
+char* strcpy(char* d, const char* s);
 char* strcpy(char* d, const char* s)
 {
     char*		cs = d;
@@ -95,6 +102,7 @@ char* strcpy(char* d, const char* s)
 }
 
 
+char* strchr(const char* s, int c);
 char* strchr(const char* s, int c)
 {
     char		cb = c;
@@ -108,6 +116,7 @@ char* strchr(const char* s, int c)
 }
 
 
+char* strcat(char* c1, const char* c2);
 char* strcat(char* c1, const char* c2)
 {
     strcpy(strchr(c1, '\0'), c2);
@@ -115,6 +124,7 @@ char* strcat(char* c1, const char* c2)
 }
 
 
+int strcmp(const char* c1, const char* c2);
 int strcmp(const char* c1, const char* c2)
 {
     int			ret;
@@ -126,12 +136,14 @@ int strcmp(const char* c1, const char* c2)
 }
 
 
+int strlen(const char* s);
 int strlen(const char* s)
 {
     return strchr(s, '\0') - s;
 }
 
 
+int strncasecmp(const char* c1, const char* c2, unsigned c);
 int strncasecmp(const char* c1, const char* c2, unsigned c)
 {
     int			ret;
@@ -148,6 +160,7 @@ int strncasecmp(const char* c1, const char* c2, unsigned c)
 }
 
 
+char* strncpy(char* d, const char* s, unsigned c);
 char* strncpy(char* d, const char* s, unsigned c)
 {
     char*		cd;
@@ -159,6 +172,7 @@ char* strncpy(char* d, const char* s, unsigned c)
 }
 
 
+char* strncat(char* c1, const char* c2, unsigned c);
 char* strncat(char* c1, const char* c2, unsigned c)
 {
     char*		d = strchr(c1, '\0');
@@ -171,6 +185,7 @@ char* strncat(char* c1, const char* c2, unsigned c)
 }
 
 
+int strncmp(const char* c1, const char* c2, unsigned c);
 int strncmp(const char* c1, const char* c2, unsigned c)
 {
     int			ret;
@@ -185,6 +200,7 @@ int strncmp(const char* c1, const char* c2, unsigned c)
 }
 
 
+char* strrchr(const char* s, int c);
 char* strrchr(const char* s, int c)
 {
     char		cb = c;
@@ -199,6 +215,7 @@ char* strrchr(const char* s, int c)
 }
 
 
+char* strstr(const char* s, const char* n);
 char* strstr(const char* s, const char* n)
 {
     for (; *s; s += 1) {
@@ -882,6 +899,7 @@ void ibcs_free(void* blk)
  * the rt_sigreturn syscall.  glibc uses it to do fancy nancy things.
  */
 extern void ibcs_sigrestorer(void);
+void _ibcs_sigrestorer_dummy(void);
 void _ibcs_sigrestorer_dummy(void)
 {
 #define IBCS_STRINGIFY_(x)	#x

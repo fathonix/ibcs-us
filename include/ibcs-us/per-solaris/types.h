@@ -42,8 +42,8 @@ typedef u_int64_t	sol_fsfilcnt64_t;
 #define linux_to_sol_dev_t(dev) \
 	linux_to_svr4_dev_t(dev)
 
-#define linux_to_sol_ino_t(ino) \
-	linux_to_svr4_ino_t(ino)
+#define linux_to_sol_ino_t(ino, dev) \
+	linux_to_svr4_ino_t(ino, dev)
 
 #define linux_to_sol_uid_t(uid) \
 	linux_to_svr4_uid_t(uid)

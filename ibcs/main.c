@@ -660,8 +660,8 @@ void main(int argc, const char* const* argv, const char* const* envp)
 
 /*
  * This _real_ entry point, so real it is in fact the first instruction
- * executed.  We are dealing with the kernel's ABI here, not the posix
- * one set up by glibc.
+ * executed.  We are dealing with the kernel's user space ABI here, not
+ * the posix environment set up by glibc.
  */
 void _start(char const* arg0)
 {
@@ -678,5 +678,8 @@ void _start(char const* arg0)
      *    :     	envp[...]
      * esp+yyyy:	0
      */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
     main(((int*)&arg0)[-1], &arg0, &arg0 + ((int*)&arg0)[-1] + 1);
+#pragma GCC diagnostic pop
 }

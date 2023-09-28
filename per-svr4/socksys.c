@@ -1110,11 +1110,11 @@ socksys_getfh(caddr_t arg)
 #endif
 	if (!error) {
 		__put_user(ip->i_rdev, &gf.fhp->fh.fsid);
-		/* FIXME: do we need linux_to_svr4_ino_t(ip->i_ino)? */
+		/* FIXME: do we need linux_to_svr4_ino_t(ip->i_ino, ip->i_dev)? */
 		__put_user(ip->i_ino, &gf.fhp->fh.fno);
 		__put_user(0L, &gf.fhp->fh.fgen);
 		__put_user(ip->i_rdev, &gf.fhp->fh.ex_fsid);
-		/* FIXME: do we need linux_to_svr4_ino_t(ip->i_ino)? */
+		/* FIXME: do we need linux_to_svr4_ino_t(ip->i_ino, ip->i_dev)? */
 		__put_user(ip->i_ino, &gf.fhp->fh.ex_fno);
 		__put_user(0L, &gf.fhp->fh.ex_fgen);
 		error = 0;

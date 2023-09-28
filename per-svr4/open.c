@@ -271,7 +271,7 @@ struct svr4_getdents_callback {
 };
 
 static int svr4_filldir(void * __buf, const char * name, int namlen,
-	loff_t offset, u64 ino, unsigned int d_type)
+	loff_t offset, u64 ino, unsigned int d_type, dev_t dev)
 {
 	struct dirent * dirent;
 	struct svr4_getdents_callback * buf = (struct svr4_getdents_callback *) __buf;
@@ -288,7 +288,7 @@ static int svr4_filldir(void * __buf, const char * name, int namlen,
 	buf->previous = dirent;
 
 #ifdef CONFIG_ABI_SHINOMAP
-	ino = linux_to_svr4_ino_t(abi_map(ino,1));
+	ino = linux_to_svr4_ino_t(abi_map(ino,1), dev);
 #else
 	ino = abi_map(ino,1);
 

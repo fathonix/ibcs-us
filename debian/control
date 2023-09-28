@@ -3,7 +3,7 @@ Section: otherosfs
 Priority: optional
 Maintainer: Russell Stuart <russell-debian@stuart.id.au>
 Build-Depends: debhelper (>= 10), libc6-dev-i386, linux-libc-dev:i386
-Standards-Version: 4.5.1
+Standards-Version: 4.6.2
 Homepage: http://ibcs-us.sourceforge.net/
 
 Package: ibcs-us

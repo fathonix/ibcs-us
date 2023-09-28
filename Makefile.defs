@@ -25,7 +25,7 @@ CFLAGS_OPT	?=	-O2 -fno-builtin -ffreestanding
 CFLAGS_DEBUG	?=	-g
 CFLAGS_ARCH	?=	-m32
 
-CFLAGS_WARNINGS	?=	-Wall -Wextra -Wno-unused-parameter -Wno-sign-compare -Wduplicated-cond -Wlogical-op -Wnull-dereference -Wdouble-promotion -Wshadow
+CFLAGS_WARNINGS	?=	-Wall -Wextra -Wno-pragmas -Wno-sign-compare -Wno-unused-parameter -Wchar-subscripts -Wduplicated-branches -Wduplicated-cond -Wdouble-promotion -Wenum-compare -Wformat -Wformat-signedness -Wimplicit-fallthrough -Wmaybe-uninitialized -Wnormalized -Wnull-dereference -Wpointer-arith -Wshadow -Wundef -Wuninitialized
 CFLAGS_ERROR	?=	-Werror
 
 CFLAGS		?=	$(INCLUDES) $(CFLAGS_DEBUG) $(CFLAGS_OPT) $(CFLAGS_WARNINGS) $(CFLAGS_ERROR) $(CFLAGS_ARCH) $(CFLAGS_DEFINES) $(IBCS_CFLAGS) $(CFLAGS_EXTRA) $(GDBMAP)

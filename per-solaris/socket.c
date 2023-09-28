@@ -45,7 +45,7 @@
 /*
  * 64 bit vs 32bit issues.
  */
-#if BITS_PER_LONG == 32
+#if ~0UL == 0xFFFFFFFF
 #define sys32_getsockopt	sys_getsockopt
 #define A(ptr)		((void *)(ptr))
 #define __kernel_size_t32	__kernel_size_t
