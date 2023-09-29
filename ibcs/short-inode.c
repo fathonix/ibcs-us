@@ -71,7 +71,6 @@ static inline void mock_up_write(struct rw_semaphore* sem) {}
  */
 struct short_inode_element
 {
-    dev_t       dev;
     ino_t	ino;
     u_short	lru_prev;
     u_short	lru_next;
@@ -109,7 +108,9 @@ static void short_inode_lazy_init(u_short entry)
 	return;
     }
     short_inode_table[entry].ino = SHORT_INODE_UNUSED;
-    short_inode_table[entry].lru_prev = (entry + SHORT_INODE_MAX - 1) % SHORT_INODE_MAX;
+    short_inode_table[entry].lru_prev = (
+        (entry + SHORT_INODE_MAX - 1) % SHORT_INODE_MAX
+    );
     short_inode_table[entry].lru_next = (entry + 1) % SHORT_INODE_MAX;
 }
 
@@ -152,12 +153,12 @@ static inline void short_inode_lru_join(u_short prev, u_short next)
  */
 static inline void short_inode_lru_free(u_short i)
 {
-    short_inode_lazy_init(i);
     if (i == short_inode_oldest) {
         short_inode_oldest = short_inode_table[i].lru_next;
     }
     short_inode_lru_join(
-	short_inode_table[i].lru_prev, short_inode_table[i].lru_next);
+	short_inode_table[i].lru_prev, short_inode_table[i].lru_next
+    );
 }
 
 
@@ -178,7 +179,8 @@ static inline void short_inode_hash_free(u_short i)
 {
     if (!SHORT_INODE_IS_UNUSED(short_inode_table[i].ino)) {
 	short_inode_hash_join(
-	    short_inode_table[i].hash_prev, short_inode_table[i].hash_next);
+	    short_inode_table[i].hash_prev, short_inode_table[i].hash_next
+        );
     }
 }
 
@@ -187,7 +189,7 @@ static inline void short_inode_hash_free(u_short i)
  * Map the passed inode to a 16 bit value.  Inode numbers 0, 1 and 2 are
  * always returned unchanged.  -ENOENT if returned if the mapping fails.
  */
-ino_t short_inode_map(ino_t ino, dev_t dev)
+ino_t short_inode_map(ino_t ino)
 {
     u_short		si;
 
@@ -204,58 +206,50 @@ ino_t short_inode_map(ino_t ino, dev_t dev)
 	 * The hash slot used by the inode is unused, so just remove it from
 	 * the free chain and allocate it.
 	 */
-        short_inode_lazy_init(short_inode_oldest);
+        short_inode_lazy_init(si);
 	short_inode_table[si].ino = ino;
-	short_inode_table[si].dev = dev;
 	short_inode_hash_join(si, si);
-    } else {
+    } else if (short_inode_table[si].ino != ino) {
         /*
 	 * The hash slot is used, so check if we are already on the hash chain.
 	 */
 	u_short first = si;
 	do {
 	    si = short_inode_table[si].hash_next;
-	} while (
-            si != first && (
-                short_inode_table[si].ino != ino ||
-                short_inode_table[si].dev != dev
-            )
-        );
-	if (short_inode_table[si].ino != ino && short_inode_table[si].dev != dev) {
+	} while (si != first && short_inode_table[si].ino != ino);
+	if (short_inode_table[si].ino != ino) {
 	    /*
 	     * We weren't on the hash chain, so grab the least recently used
 	     * entry, free it off the chain it's on, and allocate it to us.
 	     */
-	    short_inode_lazy_init(short_inode_oldest);
-	    short_inode_hash_free(short_inode_oldest);
-	    short_inode_hash_join(short_inode_oldest, short_inode_table[si].hash_next);
-	    short_inode_hash_join(si, short_inode_oldest);
-	    si = short_inode_oldest;
+            u_short new_node = short_inode_oldest;
+	    short_inode_lazy_init(new_node);
+	    short_inode_hash_free(new_node);
+	    short_inode_hash_join(new_node, short_inode_table[si].hash_next);
+	    short_inode_hash_join(si, new_node);
+	    si = new_node;
 	    short_inode_table[si].ino = ino;
-	    short_inode_table[si].dev = dev;
 	}
     }
     /*
      * It's the least recently used, so move it to the end.
      */
     short_inode_lru_free(si);
+    short_inode_lazy_init(short_inode_oldest);
     short_inode_lru_join(short_inode_table[short_inode_oldest].lru_prev, si);
     short_inode_lru_join(si, short_inode_oldest);
     up_write(&short_inode_sem);
-    ino_t mapped =(ino_t)si + SHORT_INODE_UNMAPPED + 1;
+    ino_t mapped = (ino_t)si + SHORT_INODE_UNMAPPED + 1;
     abi_trace(
 	ABI_TRACE_SINODE,
-	"short_inode_map %x:%x->%d(%d), next=%x->%d prev=%x->%d, oldest=%x->%d, old next=%x->%d old prev=%x->%d\n",
-	(u_int)dev, (u_int)ino, si, mapped,
-	short_inode_table[short_inode_table[si].hash_prev].ino,
+	"short_inode_map %x->%04x(%d), hash=%04x:%04x oldest=%04x lru=%04x:%04x\n",
+	(u_int)ino, si, mapped,
 	short_inode_table[si].hash_prev,
-	short_inode_table[short_inode_table[si].hash_next].ino,
 	short_inode_table[si].hash_next,
-	short_inode_table[short_inode_oldest].ino, short_inode_oldest,
-	short_inode_table[short_inode_table[short_inode_oldest].hash_prev].ino,
-	short_inode_table[short_inode_oldest].hash_prev,
-	short_inode_table[short_inode_table[short_inode_oldest].hash_next].ino,
-	short_inode_table[short_inode_oldest].hash_next);
+	short_inode_oldest,
+	short_inode_table[short_inode_oldest].lru_prev,
+	short_inode_table[short_inode_oldest].lru_next
+    );
     return mapped;
 }
 
@@ -286,7 +280,8 @@ int short_inode_construct(void)
      */
     int short_inode_table_len = SHORT_INODE_MAX * sizeof(*short_inode_table);
     short_inode_table = (struct short_inode_element*)ibcs_malloc(
-	short_inode_table_len);
+	short_inode_table_len
+    );
     short_inode_oldest = 0;
     init_rwsem(&short_inode_sem);
     return 0;
@@ -324,7 +319,6 @@ static int current_line_nr;
 static void test_short_inode_map(int line_nr, ...)
 {
     va_list		args;
-    const dev_t         dev = 0x1234;
     int			i;
     unsigned long	inode;
     int			inode_count;
@@ -340,7 +334,7 @@ static void test_short_inode_map(int line_nr, ...)
         unsigned short prev_oldest = short_inode_oldest;
         unsigned short next_alloc = prev_oldest + SHORT_INODE_UNMAPPED + 1;
 	alloced[inode_count].i = inode;
-	alloced[inode_count].s = short_inode_map(inode, dev);
+	alloced[inode_count].s = short_inode_map(inode);
 	MUST_BE_TRUE(line_nr, inode > 2 || alloced[inode_count].s == inode);
 	for (i = 0; i < inode_count; i += 1) {
 	    if (
@@ -361,7 +355,7 @@ static void test_short_inode_map(int line_nr, ...)
 	MUST_BE_TRUE(
 	    line_nr,
 	    alloced[i].i == 0 ||
-            alloced[i].s == short_inode_map(alloced[i].i, dev));
+            alloced[i].s == short_inode_map(alloced[i].i));
     }
     short_inode_destruct();
 }

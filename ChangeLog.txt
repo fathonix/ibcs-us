@@ -1,3 +1,8 @@
+ibcs-us-4.2.1  2023-09-28 Russell Stuart <russell-debian@stuart.id.au>
+
+	* new: Revert single inode number namespace for all devices
+	* bug: fix short_inode_map() infinite loop.
+
 ibcs-us-4.2.0  2023-09-28 Russell Stuart <russell-debian@stuart.id.au>
 
 	* new: Single inode number namespace for all devices

@@ -46,7 +46,7 @@ report_uw7_stat64(struct kstat *stp, struct uw7_stat64 *bufp)
 	memset(&buf, 0, sizeof(struct uw7_stat64));
 
 	buf.st_dev	= linux_to_uw7_dev_t(abi_map(stp->dev,2));
-	buf.st_ino	= linux_to_uw7_ino_t(abi_map(stp->ino,1), stp->dev);
+	buf.st_ino	= linux_to_uw7_ino_t(abi_map(stp->ino,1));
 	buf.st_mode	= stp->mode;
 	buf.st_nlink	= stp->nlink;
 	buf.st_uid	= linux_to_uw7_uid_t(stp->uid);

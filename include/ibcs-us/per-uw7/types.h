@@ -42,8 +42,8 @@ typedef u_int64_t	uw7_fsfilcnt64_t;
 #define linux_to_uw7_dev_t(dev) \
 	linux_to_svr4_dev_t(dev)
 
-#define linux_to_uw7_ino_t(ino, dev) \
-	linux_to_svr4_ino_t(ino, dev)
+#define linux_to_uw7_ino_t(ino) \
+	linux_to_svr4_ino_t(ino)
 
 #define linux_to_uw7_uid_t(uid) \
 	linux_to_svr4_uid_t(uid)

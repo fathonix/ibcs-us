@@ -47,7 +47,7 @@ report_sco_xstat(struct kstat *stp, struct sco_xstat *bufp)
 	memset(&buf, 0, sizeof(struct sco_xstat));
 
 	buf.st_dev	= linux_to_sco_dev_t(abi_map(stp->dev,2));
-	buf.st_ino	= linux_to_sco_ino_t(abi_map(stp->ino,1), stp->dev);
+	buf.st_ino	= linux_to_sco_ino_t(abi_map(stp->ino,1));
 	buf.st_mode	= stp->mode;
 	buf.st_nlink	= stp->nlink;
 	buf.st_uid	= linux_to_sco_uid_t(stp->uid);

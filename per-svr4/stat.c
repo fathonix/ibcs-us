@@ -51,7 +51,7 @@ report_svr4_stat(struct kstat *stp, struct svr4_stat *bufp)
 
 
 	buf.st_dev	= linux_to_svr4_o_dev_t(abi_map(stp->dev,2));
-	buf.st_ino	= linux_to_svr4_o_ino_t(abi_map(stp->ino,1), stp->dev);
+	buf.st_ino	= linux_to_svr4_o_ino_t(abi_map(stp->ino,1));
 	buf.st_mode	= stp->mode;
 	buf.st_nlink	= stp->nlink;
 	buf.st_uid	= linux_to_svr4_o_uid_t(stp->uid);
@@ -81,7 +81,7 @@ report_svr4_xstat(struct kstat *stp, struct svr4_xstat *bufp)
 
 
 	buf.st_dev	= linux_to_svr4_dev_t(abi_map(stp->dev,2));
-	buf.st_ino	= linux_to_svr4_ino_t(abi_map(stp->ino,1), stp->dev);
+	buf.st_ino	= linux_to_svr4_ino_t(abi_map(stp->ino,1));
 	buf.st_mode	= stp->mode;
 	buf.st_nlink	= stp->nlink;
 	buf.st_uid	= linux_to_svr4_uid_t(stp->uid);

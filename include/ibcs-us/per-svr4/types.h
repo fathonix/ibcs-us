@@ -88,7 +88,7 @@ linux_to_svr4_o_dev_t(dev_t dev)
 
 
 #ifdef CONFIG_ABI_SHINOMAP
-extern ino_t short_inode_map(ino_t, dev_t);
+extern ino_t short_inode_map(ino_t);
 #endif
 
 /*
@@ -109,13 +109,13 @@ extern ino_t short_inode_map(ino_t, dev_t);
  */
 
 static __inline svr4_ino_t
-linux_to_svr4_ino_t(ino_t ino, dev_t dev)
+linux_to_svr4_ino_t(ino_t ino)
 {
 	if ( !(current->personality & SHORT_INODE) )
 		return ino;
 
 #ifdef CONFIG_ABI_SHINOMAP
-	return (svr4_ino_t)short_inode_map(ino, dev);
+	return (svr4_ino_t)short_inode_map(ino);
 #else
 	if ((u_long)ino & 0xffff)
 		return ino;
@@ -127,10 +127,10 @@ linux_to_svr4_ino_t(ino_t ino, dev_t dev)
  * Old SVR4 ino_t _must_ be in a short inode enviroment.
  */
 static __inline svr4_o_ino_t
-linux_to_svr4_o_ino_t(ino_t ino, dev_t dev)
+linux_to_svr4_o_ino_t(ino_t ino)
 {
 #ifdef CONFIG_ABI_SHINOMAP
-	return (svr4_ino_t)short_inode_map(ino, dev);
+	return (svr4_ino_t)short_inode_map(ino);
 #else
 	if ((u_long)ino & 0xffff)
 		return (svr4_o_ino_t)ino;

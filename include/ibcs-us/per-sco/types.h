@@ -81,7 +81,7 @@ linux_to_sco_dev_t(dev_t dev)
  * We will just have to go along with it.
  */
 static __inline sco_ino_t
-linux_to_sco_ino_t(ino_t ino, dev_t dev)
+linux_to_sco_ino_t(ino_t ino)
 {
 	if ( !(current->personality & SHORT_INODE) )
 		return ino;
@@ -90,7 +90,7 @@ linux_to_sco_ino_t(ino_t ino, dev_t dev)
 	return 0xfffffffe;
 }
 #else
-#define linux_to_sco_ino_t(ino, dev) ((sco_ino_t)linux_to_svr4_ino_t(ino, dev))
+#define linux_to_sco_ino_t(ino) ((sco_ino_t)linux_to_svr4_ino_t(ino))
 #endif
 
 /*

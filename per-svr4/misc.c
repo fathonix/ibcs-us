@@ -676,7 +676,7 @@ abi_read_dir(int fd, char *buf, int count)
 		/*
  		 * ... and this one uses linux_to_svr4_ino_t() ...
  		 */
-		if (put_user(linux_to_svr4_ino_t(de->d_ino, fp->f_dentry->d_inode->i_dev), buf+posn))
+		if (put_user(linux_to_svr4_ino_t(de->d_ino), buf+posn))
 			goto out_fault;
 #endif
 #endif
